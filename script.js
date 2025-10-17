@@ -129,9 +129,8 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
             return null;
         }
 
-        // DIUBAH: Menggunakan model Gemini Flash yang lebih baru
-        const modelName = 'gemini-1.5-flash-latest';
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        // PERUBAHAN DI SINI: Menggunakan model spesifik 'gemini-2.5-flash-preview-09-2025'
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
         const response = await fetch(apiUrl, {
             method: 'POST',
