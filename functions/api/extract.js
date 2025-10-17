@@ -59,11 +59,23 @@ export async function onRequest(context) {
         });
 
         if (!response.ok) {
-            console.error("Google AI API error:", await response.text());
+            // TAMBAHKAN LOG INI untuk melihat pesan error dari Google
+            const errorText = await response.text();
+            console.error("Google AI API error response:", errorText);
             return new Response('Gagal berkomunikasi dengan Google AI', { status: response.status });
         }
 
         const data = await response.json();
+
+        // TAMBAHKAN LOG INI untuk melihat struktur data yang berhasil
+        console.log("Google AI success response:", JSON.stringify(data, null, 2));
+        
+        // Cek jika respons tidak memiliki teks yang diharapkan
+        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0].text) {
+            console.error("Struktur respons Google AI tidak valid atau teks tidak ditemukan.");
+            return new Response('Struktur respons AI tidak valid', { status: 500 });
+        }
+
         const extractedText = data.candidates[0].content.parts[0].text;
         
         return new Response(JSON.stringify({ text: extractedText }), {
@@ -74,4 +86,5 @@ export async function onRequest(context) {
         console.error('Error di Cloudflare Function:', error);
         return new Response('Terjadi kesalahan internal', { status: 500 });
     }
+
 }
