@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewModeBtn = document.getElementById('view-mode-btn');
     const mainContainer = document.getElementById('main-container');
     const apiKeyInput = document.getElementById('api-key-input');
-    // BARU: Elemen Kamera
+    // Elemen Kamera
     const cameraBtn = document.getElementById('camera-btn');
     const cameraModal = document.getElementById('camera-modal');
     const cameraStream = document.getElementById('camera-stream');
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     let cropper = null;
-    let activeStream = null; // Untuk menyimpan stream kamera yang aktif
+    let activeStream = null;
 
     // === The master prompt for Gemini Vision OCR ===
     const GEMINI_OCR_PROMPT = `Anda adalah AI OCR Assistant dengan tingkat presisi tertinggi, yang bertugas sebagai pemindai visual murni.
@@ -118,7 +118,7 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
         }
     });
 
-    // === BARU: Logika Kamera ===
+    // === Logika Kamera ===
     const openCamera = async () => {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             showModal('Error', 'Fitur kamera tidak didukung di browser Anda.');
@@ -146,7 +146,6 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
         canvas.width = cameraStream.videoWidth;
         canvas.height = cameraStream.videoHeight;
         const context = canvas.getContext('2d');
-        // Cerminkan gambar saat mengambil agar sesuai dengan preview
         context.translate(canvas.width, 0);
         context.scale(-1, 1);
         context.drawImage(cameraStream, 0, 0, canvas.width, canvas.height);
@@ -181,8 +180,8 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
             return null;
         }
 
-        const modelName = 'gemini-1.5-flash-latest';
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        // KEMBALI MENGGUNAKAN MODEL YANG BERHASIL
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
         const response = await fetch(apiUrl, {
             method: 'POST',
