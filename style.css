@@ -36,7 +36,7 @@ body {
     left: 0;
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* DIUBAH: Mengatur tata letak header */
     align-items: center;
     padding: 0 20px;
     height: 60px;
@@ -46,6 +46,20 @@ body {
     border-bottom: 1px solid var(--border-color);
     z-index: 1000;
 }
+
+/* BARU: Judul di tengah header */
+.header-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+/* BARU: Kontrol di kanan header */
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 
 /* Konten Utama */
 .main-content {
@@ -58,7 +72,17 @@ body {
     width: 100%;
     max-width: 1200px;
     text-align: center;
+    transition: max-width 0.5s ease-in-out; /* BARU: Transisi untuk perubahan ukuran */
 }
+
+/* BARU: Kelas untuk mode tampilan */
+.container.view-tablet {
+    max-width: 768px;
+}
+.container.view-mobile {
+    max-width: 425px;
+}
+
 
 h1 {
     font-size: 3rem;
@@ -77,7 +101,7 @@ h1 {
     display: flex;
     justify-content: center;
     align-items: stretch;
-    gap: 1rem; /* Mengurangi jarak antar kolom */
+    gap: 1rem;
     margin-bottom: 2rem;
 }
 
@@ -136,7 +160,7 @@ textarea#text-output:focus {
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0; /* Mencegah kolom ini menyusut */
+    flex-shrink: 0;
     padding: 0 1rem;
 }
 
@@ -161,7 +185,7 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px; /* Jarak antara ikon dan teks */
+    gap: 8px;
 }
 
 button:hover {
@@ -172,12 +196,11 @@ button.secondary-btn {
     background-color: var(--secondary-color);
 }
 
-/* BARU: Gaya untuk Tombol Ekstrak Utama */
 .extract-btn-main {
     padding: 15px 25px;
     font-size: 1.1rem;
     border-radius: 12px;
-    flex-direction: column; /* Ikon di atas teks */
+    flex-direction: column;
     gap: 5px;
 }
 
@@ -193,7 +216,6 @@ button.secondary-btn {
     justify-content: center;
 }
 
-/* BARU: Gaya untuk ikon SVG di dalam tombol */
 button svg {
     width: 20px;
     height: 20px;
@@ -205,10 +227,16 @@ button svg {
     height: 24px;
 }
 
-/* BARU: Logika untuk menampilkan ikon tema terang/gelap */
+/* Logika untuk menampilkan ikon tema */
 .moon-icon { display: none; }
 [data-theme="dark"] .sun-icon { display: none; }
 [data-theme="dark"] .moon-icon { display: block; }
+
+/* BARU: Logika untuk menampilkan ikon mode layar */
+#view-mode-btn .tablet-icon,
+#view-mode-btn .mobile-icon {
+    display: none;
+}
 
 
 /* Animasi Loading */
@@ -328,4 +356,9 @@ button svg {
     h1 {
         font-size: 2rem;
     }
+    .header-title {
+        display: none; /* Sembunyikan judul di layar kecil agar tidak menabrak */
+    }
 }
+
+
