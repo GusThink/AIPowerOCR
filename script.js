@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageDropZone = document.getElementById('image-drop-zone');
     const uploadInput = document.getElementById('upload-input');
     const uploadBtn = document.getElementById('upload-btn');
+    const cameraBtn = document.getElementById('camera-btn'); // Menambahkan referensi tombol kamera
     const imagePreviewContainer = document.getElementById('image-preview-container');
     const imagePreview = document.getElementById('image-preview');
     const placeholderText = document.getElementById('placeholder-text');
@@ -12,7 +13,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyBtn = document.getElementById('copy-btn');
     const downloadBtn = document.getElementById('download-btn');
     const clearBtn = document.getElementById('clear-btn');
-    const refreshBtn = document.getElementById('refresh-btn');
+    
+    // DIUBAH: Mengganti referensi tombol dari 'refresh-btn' menjadi 'extract-btn'
+    const extractBtn = document.getElementById('extract-btn');
 
     const modal = document.getElementById('modal');
     const modalBody = document.getElementById('modal-body');
@@ -23,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.getElementById('sidebar');
 
     let cropper = null;
-    let originalImageData = { base64: null, mimeType: null };
 
     // Fungsi untuk menampilkan pop-up/modal
     function showModal(title, message) {
@@ -47,10 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentTheme = document.documentElement.getAttribute('data-theme');
         if (currentTheme === 'dark') {
             document.documentElement.setAttribute('data-theme', 'light');
-            themeToggle.textContent = '☀️';
         } else {
             document.documentElement.setAttribute('data-theme', 'dark');
-            themeToggle.textContent = '🌙';
         }
     });
 
@@ -107,7 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         loadingAnimation.style.display = 'flex';
         textOutput.value = '';
-        showModal('Proses', 'AI sedang memulai proses ekstraksi. Mohon tunggu...');
+        // Tidak menampilkan modal saat memulai, karena sudah ada animasi loading
+        // showModal('Proses', 'AI sedang memulai proses ekstraksi. Mohon tunggu...');
 
         const canvas = cropper.getCroppedCanvas();
         const mimeType = 'image/png';
@@ -136,25 +137,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Tombol refresh/ulangi akan memanggil fungsi ekstrak
-    refreshBtn.addEventListener('click', extractText);
+    // DIUBAH: Event listener sekarang terpasang di tombol 'extract-btn'
+    extractBtn.addEventListener('click', extractText);
     
     // Fungsi tombol di bawah kolom output
     copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(textOutput.value);
-        showModal('Info', 'Teks berhasil disalin ke clipboard.');
+        if(textOutput.value) {
+            navigator.clipboard.writeText(textOutput.value);
+            showModal('Info', 'Teks berhasil disalin ke clipboard.');
+        }
     });
 
     downloadBtn.addEventListener('click', () => {
-        const blob = new Blob([textOutput.value], { type: 'text/plain' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'hasil-ocr.txt';
-        a.click();
-        URL.revokeObjectURL(a.href);
+        if(textOutput.value) {
+            const blob = new Blob([textOutput.value], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'hasil-ocr.txt';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
     });
 
     clearBtn.addEventListener('click', () => {
         textOutput.value = '';
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        imagePreview.src = '';
+        imagePreviewContainer.style.display = 'none';
+        placeholderText.style.display = 'block';
     });
 });
