@@ -22,12 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewModeBtn = document.getElementById('view-mode-btn');
     const mainContainer = document.getElementById('main-container');
     const apiKeyInput = document.getElementById('api-key-input');
-    // Elemen Kamera
     const cameraBtn = document.getElementById('camera-btn');
     const cameraModal = document.getElementById('camera-modal');
     const cameraStream = document.getElementById('camera-stream');
     const captureBtn = document.getElementById('capture-btn');
     const closeCameraBtn = document.getElementById('close-camera-btn');
+    const clearImageBtn = document.getElementById('clear-image-btn');
 
 
     let cropper = null;
@@ -100,6 +100,7 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
                 imagePreview.src = e.target.result;
                 placeholderText.style.display = 'none';
                 imagePreviewContainer.style.display = 'block';
+                clearImageBtn.style.display = 'flex';
                 if (cropper) cropper.destroy();
                 cropper = new Cropper(imagePreview, { viewMode: 1, background: false, autoCropArea: 1 });
             };
@@ -146,8 +147,6 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
         canvas.width = cameraStream.videoWidth;
         canvas.height = cameraStream.videoHeight;
         const context = canvas.getContext('2d');
-        context.translate(canvas.width, 0);
-        context.scale(-1, 1);
         context.drawImage(cameraStream, 0, 0, canvas.width, canvas.height);
         
         canvas.toBlob(blob => {
@@ -171,7 +170,7 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
         reader.readAsDataURL(blob);
     });
 
-    // === Main Gemini API Call Function ===
+    // === Main Gemini API Call Function (TIDAK DIUBAH) ===
     const callGeminiAPI = async (payload) => {
         const apiKey = localStorage.getItem('geminiApiKey');
         if (!apiKey) {
@@ -180,7 +179,6 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
             return null;
         }
 
-        // KEMBALI MENGGUNAKAN MODEL YANG BERHASIL
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
         const response = await fetch(apiUrl, {
@@ -251,6 +249,19 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
     extractBtn.addEventListener('click', extractText);
     
     // === Output Button Functions ===
+    const clearImagePreview = () => {
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        imagePreview.src = '';
+        imagePreviewContainer.style.display = 'none';
+        placeholderText.style.display = 'block';
+        clearImageBtn.style.display = 'none';
+    };
+
+    clearImageBtn.addEventListener('click', clearImagePreview);
+
     copyBtn.addEventListener('click', () => {
         if (textOutput.value) {
             navigator.clipboard.writeText(textOutput.value);
@@ -260,13 +271,6 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
 
     clearBtn.addEventListener('click', () => {
         textOutput.value = '';
-        if (cropper) {
-            cropper.destroy();
-            cropper = null;
-        }
-        imagePreview.src = '';
-        imagePreviewContainer.style.display = 'none';
-        placeholderText.style.display = 'block';
     });
 
     // Initial UI setup
