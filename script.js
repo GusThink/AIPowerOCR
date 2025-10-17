@@ -22,8 +22,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewModeBtn = document.getElementById('view-mode-btn');
     const mainContainer = document.getElementById('main-container');
     const apiKeyInput = document.getElementById('api-key-input');
+    // BARU: Elemen Kamera
+    const cameraBtn = document.getElementById('camera-btn');
+    const cameraModal = document.getElementById('camera-modal');
+    const cameraStream = document.getElementById('camera-stream');
+    const captureBtn = document.getElementById('capture-btn');
+    const closeCameraBtn = document.getElementById('close-camera-btn');
+
 
     let cropper = null;
+    let activeStream = null; // Untuk menyimpan stream kamera yang aktif
 
     // === The master prompt for Gemini Vision OCR ===
     const GEMINI_OCR_PROMPT = `Anda adalah AI OCR Assistant dengan tingkat presisi tertinggi, yang bertugas sebagai pemindai visual murni.
@@ -86,7 +94,7 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
 
     // === Image Handling ===
     const handleFile = (file) => {
-        if (file && file.type.startsWith('image/')) {
+        if (file && (file.type.startsWith('image/') || file instanceof Blob)) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 imagePreview.src = e.target.result;
@@ -110,6 +118,50 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
         }
     });
 
+    // === BARU: Logika Kamera ===
+    const openCamera = async () => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showModal('Error', 'Fitur kamera tidak didukung di browser Anda.');
+            return;
+        }
+        try {
+            activeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            cameraStream.srcObject = activeStream;
+            cameraModal.style.display = 'block';
+        } catch (err) {
+            console.error("Camera Error:", err);
+            showModal('Gagal!', 'Tidak bisa mengakses kamera. Pastikan Anda memberikan izin.');
+        }
+    };
+
+    const closeCamera = () => {
+        if (activeStream) {
+            activeStream.getTracks().forEach(track => track.stop());
+        }
+        cameraModal.style.display = 'none';
+    };
+
+    const captureImage = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = cameraStream.videoWidth;
+        canvas.height = cameraStream.videoHeight;
+        const context = canvas.getContext('2d');
+        // Cerminkan gambar saat mengambil agar sesuai dengan preview
+        context.translate(canvas.width, 0);
+        context.scale(-1, 1);
+        context.drawImage(cameraStream, 0, 0, canvas.width, canvas.height);
+        
+        canvas.toBlob(blob => {
+            handleFile(blob);
+            closeCamera();
+        }, 'image/png');
+    };
+
+    cameraBtn.addEventListener('click', openCamera);
+    closeCameraBtn.addEventListener('click', closeCamera);
+    captureBtn.addEventListener('click', captureImage);
+
+    // === Helper to convert image file to Base64 ===
     const imageBlobToBase64 = (blob) => new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve({
@@ -129,8 +181,8 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
             return null;
         }
 
-        // PERUBAHAN DI SINI: Menggunakan model spesifik 'gemini-2.5-flash-preview-09-2025'
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+        const modelName = 'gemini-1.5-flash-latest';
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -225,4 +277,3 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
     viewModeBtn.querySelectorAll('svg').forEach(icon => icon.style.display = 'none');
     viewModeBtn.querySelector('.desktop-icon').style.display = 'block';
 });
-
