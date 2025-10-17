@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageDropZone = document.getElementById('image-drop-zone');
     const uploadInput = document.getElementById('upload-input');
     const uploadBtn = document.getElementById('upload-btn');
-    const cameraBtn = document.getElementById('camera-btn'); // Menambahkan referensi tombol kamera
+    const cameraBtn = document.getElementById('camera-btn');
     const imagePreviewContainer = document.getElementById('image-preview-container');
     const imagePreview = document.getElementById('image-preview');
     const placeholderText = document.getElementById('placeholder-text');
@@ -13,17 +13,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const copyBtn = document.getElementById('copy-btn');
     const downloadBtn = document.getElementById('download-btn');
     const clearBtn = document.getElementById('clear-btn');
-    
-    // DIUBAH: Mengganti referensi tombol dari 'refresh-btn' menjadi 'extract-btn'
     const extractBtn = document.getElementById('extract-btn');
-
     const modal = document.getElementById('modal');
     const modalBody = document.getElementById('modal-body');
     const closeModalBtn = document.querySelector('.close-modal-btn');
-    
     const openSidebarBtn = document.getElementById('openSidebarBtn');
     const closeSidebarBtn = document.getElementById('closeSidebarBtn');
     const sidebar = document.getElementById('sidebar');
+
+    // BARU: Elemen untuk mode layar
+    const viewModeBtn = document.getElementById('view-mode-btn');
+    const mainContainer = document.getElementById('main-container');
+    const desktopIcon = viewModeBtn.querySelector('.desktop-icon');
+    const tabletIcon = viewModeBtn.querySelector('.tablet-icon');
+    const mobileIcon = viewModeBtn.querySelector('.mobile-icon');
 
     let cropper = null;
 
@@ -51,6 +54,30 @@ document.addEventListener('DOMContentLoaded', () => {
             document.documentElement.setAttribute('data-theme', 'light');
         } else {
             document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    });
+    
+    // BARU: Logika untuk tombol mode layar
+    const viewModes = ['desktop', 'tablet', 'mobile'];
+    let currentModeIndex = 0;
+
+    viewModeBtn.addEventListener('click', () => {
+        currentModeIndex = (currentModeIndex + 1) % viewModes.length;
+        const newMode = viewModes[currentModeIndex];
+
+        mainContainer.classList.remove('view-desktop', 'view-tablet', 'view-mobile');
+        desktopIcon.style.display = 'none';
+        tabletIcon.style.display = 'none';
+        mobileIcon.style.display = 'none';
+
+        if (newMode === 'tablet') {
+            mainContainer.classList.add('view-tablet');
+            tabletIcon.style.display = 'block';
+        } else if (newMode === 'mobile') {
+            mainContainer.classList.add('view-mobile');
+            mobileIcon.style.display = 'block';
+        } else { // desktop
+            desktopIcon.style.display = 'block';
         }
     });
 
@@ -107,9 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         loadingAnimation.style.display = 'flex';
         textOutput.value = '';
-        // Tidak menampilkan modal saat memulai, karena sudah ada animasi loading
-        // showModal('Proses', 'AI sedang memulai proses ekstraksi. Mohon tunggu...');
-
+        
         const canvas = cropper.getCroppedCanvas();
         const mimeType = 'image/png';
         const base64Image = canvas.toDataURL(mimeType).split(',')[1];
@@ -137,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // DIUBAH: Event listener sekarang terpasang di tombol 'extract-btn'
     extractBtn.addEventListener('click', extractText);
     
     // Fungsi tombol di bawah kolom output
@@ -170,3 +194,5 @@ document.addEventListener('DOMContentLoaded', () => {
         placeholderText.style.display = 'block';
     });
 });
+
+
