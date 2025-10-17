@@ -68,7 +68,6 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
         root.setAttribute('data-theme', newTheme);
         
-        // Toggle icon visibility
         themeToggle.querySelector('.sun-icon').style.display = newTheme === 'light' ? 'block' : 'none';
         themeToggle.querySelector('.moon-icon').style.display = newTheme === 'dark' ? 'block' : 'none';
     });
@@ -81,7 +80,6 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
         mainContainer.classList.remove('view-desktop', 'view-tablet', 'view-mobile');
         if (newMode !== 'desktop') mainContainer.classList.add(`view-${newMode}`);
         
-        // Update icon visibility
         viewModeBtn.querySelectorAll('svg').forEach(icon => icon.style.display = 'none');
         viewModeBtn.querySelector(`.${newMode}-icon`).style.display = 'block';
     });
@@ -112,7 +110,6 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
         }
     });
 
-    // === Helper to convert image file to Base64 ===
     const imageBlobToBase64 = (blob) => new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve({
@@ -132,7 +129,9 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
             return null;
         }
 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`;
+        // DIUBAH: Menggunakan model Gemini Flash yang lebih baru
+        const modelName = 'gemini-1.5-flash-latest';
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -222,4 +221,9 @@ FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
 
     // Initial UI setup
     document.documentElement.setAttribute('data-theme', 'light');
+    themeToggle.querySelector('.sun-icon').style.display = 'block';
+    themeToggle.querySelector('.moon-icon').style.display = 'none';
+    viewModeBtn.querySelectorAll('svg').forEach(icon => icon.style.display = 'none');
+    viewModeBtn.querySelector('.desktop-icon').style.display = 'block';
 });
+
