@@ -193,6 +193,27 @@ button svg { width: 20px; height: 20px; stroke-width: 2; }
 [data-theme="light"] .moon-icon { display: none; }
 [data-theme="dark"] .sun-icon { display: none; }
 
+/* Tombol Hapus Gambar */
+#clear-image-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border-radius: 50%;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 10;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* Animasi Loading */
 .loading-animation {
     position: absolute;
@@ -206,7 +227,7 @@ button svg { width: 20px; height: 20px; stroke-width: 2; }
     justify-content: center;
     align-items: center;
     color: white;
-    z-index: 10;
+    z-index: 5;
 }
 .scanner {
     width: 80%;
@@ -331,7 +352,7 @@ button svg { width: 20px; height: 20px; stroke-width: 2; }
     cursor: pointer;
 }
 
-/* BARU: Gaya untuk Modal Kamera */
+/* Gaya untuk Modal Kamera */
 .camera-modal-content {
     background-color: var(--card-bg-color);
     margin: 5% auto;
@@ -349,7 +370,6 @@ button svg { width: 20px; height: 20px; stroke-width: 2; }
     border-radius: 8px;
     background-color: #000;
     margin-bottom: 1rem;
-    transform: scaleX(-1); /* Cerminkan video agar seperti cermin */
 }
 
 /* Desain Responsif */
