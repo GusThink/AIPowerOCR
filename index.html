@@ -72,7 +72,22 @@
         #camera-modal { background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); }
         #camera-stream { transform: scaleX(-1); }
 
-        #scan-animation .scan-line {
+        #dropdown-menu { transition: opacity 0.2s ease, transform 0.2s ease; }
+
+        .glass-menubar {
+            background-color: rgba(var(--bg-primary-rgb), 0.7);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        }
+
+        #image-cropper-container { max-height: 400px; }
+        #image-to-crop { max-width: 100%; }
+        
+        /* PENAMBAHAN: Style untuk overlay dan animasi scan di area crop */
+        #scan-overlay {
+            background-color: rgba(var(--bg-primary-rgb), 0.5);
+            backdrop-filter: blur(2px);
+        }
+        #scan-overlay .scan-line {
             width: 100%; height: 4px;
             background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
             box-shadow: 0 0 15px var(--accent-color);
@@ -83,15 +98,12 @@
             0% { top: 0; } 50% { top: 100%; } 100% { top: 0; }
         }
 
-        #dropdown-menu { transition: opacity 0.2s ease, transform 0.2s ease; }
-
-        .glass-menubar {
-            background-color: rgba(var(--bg-primary-rgb), 0.7);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        /* PENAMBAHAN: Style untuk area hasil yang bisa diedit saat fokus */
+        #ocr-result:focus {
+            outline: 2px solid var(--accent-color);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(var(--accent-color-rgb, 34, 211, 238), 0.3);
         }
-
-        #image-cropper-container { max-height: 400px; }
-        #image-to-crop { max-width: 100%; }
     </style>
 </head>
 <body class="bg-primary text-primary">
@@ -156,8 +168,12 @@
                 </div>
 
                 <div id="cropper-stage" class="hidden space-y-4">
-                    <div id="image-cropper-container" class="bg-secondary rounded-xl border border-custom">
+                    <div id="image-cropper-container" class="bg-secondary rounded-xl border border-custom relative">
                         <img id="image-to-crop">
+                        <div id="scan-overlay" class="hidden absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-xl">
+                            <div class="scan-line"></div>
+                            <p class="text-accent text-sm font-semibold z-10">Mengekstrak Teks...</p>
+                        </div>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                          <button id="reset-btn" class="flex-1 flex items-center justify-center gap-2 py-3 px-3 text-sm font-semibold bg-tertiary text-primary rounded-lg hover:bg-slate-600 transition-colors">
@@ -178,12 +194,8 @@
                          </button>
                     </div>
                     <div id="output-container" class="p-4 min-h-[150px]">
-                        <div id="scan-animation" class="hidden w-full h-full flex flex-col items-center justify-center relative overflow-hidden min-h-[100px]">
-                            <div class="scan-line"></div>
-                            <p class="text-accent text-sm font-semibold z-10">Menganalisis Teks...</p>
-                        </div>
                         <p id="output-placeholder" class="text-secondary text-center p-10">Hasil teks akan muncul di sini.</p>
-                        <div id="ocr-result" class="text-primary text-sm space-y-4" style="display: none;"></div>
+                        <div id="ocr-result" contenteditable="true" class="text-primary text-sm space-y-4 p-2 -m-2" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -253,6 +265,8 @@
         const imageToCrop = document.getElementById('image-to-crop');
         const extractBtn = document.getElementById('extract-btn');
         const resetBtn = document.getElementById('reset-btn');
+        // PENAMBAHAN: Inisialisasi elemen overlay scan
+        const scanOverlay = document.getElementById('scan-overlay');
         let cropper = null;
         let currentStream = null;
 
@@ -302,29 +316,22 @@
                 setTimeout(() => apiSettingsView.classList.remove('view-active'), 500);
             } else { showSnackbar('Format Kunci API tidak valid.'); }
         });
-
-        // PENYESUAIAN: Fungsi setUIState disederhanakan, logika font pindah ke renderMixedLanguageText
+        
+        // PENYESUAIAN: Logika pindah ke performOCR dan renderMixedLanguageText
         function setUIState(state) {
-            const outputScanAnimation = document.querySelector('#output-container #scan-animation');
-            if (outputScanAnimation) outputScanAnimation.classList.toggle('hidden', state !== 'loading');
             outputPlaceholder.classList.toggle('hidden', state === 'loading' || state === 'result');
             ocrResult.style.display = (state === 'result') ? 'block' : 'none';
             copyTextBtn.disabled = (state !== 'result');
         }
 
-        // PENAMBAHAN: Fungsi baru untuk merender teks multi-bahasa per paragraf
         function renderMixedLanguageText(container, text) {
-            container.innerHTML = ''; // Kosongkan hasil sebelumnya
+            container.innerHTML = ''; 
             if (!text || typeof text !== 'string') return;
-
             const paragraphs = text.split('\n');
-
             paragraphs.forEach(paragraphText => {
                 const p = document.createElement('p');
-                p.textContent = paragraphText || '\u00A0'; // Tambahkan spasi non-breaking jika paragraf kosong untuk menjaga jarak
-
+                p.textContent = paragraphText || '\u00A0'; 
                 const isArabic = /^[\u0600-\u06FF]/.test(paragraphText.trim());
-
                 if (isArabic) {
                     p.className = 'font-naskh text-right';
                     p.style.direction = 'rtl';
@@ -373,8 +380,14 @@
             };
             reader.readAsDataURL(file);
         }
+
         extractBtn.addEventListener('click', () => {
             if (!cropper) return;
+            // PENAMBAHAN: Tampilkan animasi scan saat ekstraksi dimulai
+            scanOverlay.classList.remove('hidden');
+            extractBtn.disabled = true;
+            resetBtn.disabled = true;
+
             cropper.getCroppedCanvas().toBlob((blob) => {
                 const croppedFile = new File([blob], 'cropped.png', { type: 'image/png' });
                 performOCR(croppedFile);
@@ -394,26 +407,19 @@
             if (!apiKey) { showSnackbar('Kunci API belum diatur.'); menuApiSettings.click(); return; }
             
             setUIState('loading');
-
             try {
                 const base64Data = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
+                    const reader = new FileReader(); reader.readAsDataURL(file);
                     reader.onload = () => resolve(reader.result.split(',')[1]);
                     reader.onerror = error => reject(error);
                 });
-                
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
                 const payload = { contents: [{ parts: [{ text: "Extract text from this image. Provide only the extracted text." }, { inlineData: { mimeType: file.type, data: base64Data } }] }] };
-
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error.message || `API Error`); }
-                
                 const result = await response.json();
                 const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
                 if (extractedText) {
-                    // PENYESUAIAN: Memanggil fungsi render baru
                     renderMixedLanguageText(ocrResult, extractedText);
                     showSnackbar('Teks berhasil diekstrak!');
                     setUIState('result');
@@ -424,6 +430,11 @@
             } catch (error) {
                 showSnackbar(`Terjadi kesalahan: ${error.message}`);
                 setUIState('idle');
+            } finally {
+                // PENAMBAHAN: Sembunyikan animasi dan aktifkan kembali tombol setelah selesai
+                scanOverlay.classList.add('hidden');
+                extractBtn.disabled = false;
+                resetBtn.disabled = false;
             }
         }
         
@@ -436,13 +447,11 @@
         document.addEventListener('paste', (event) => {
             const items = (event.clipboardData || window.clipboardData).items;
             let imageFile = null;
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].type.indexOf('image') !== 'undefined') { imageFile = items[i].getAsFile(); break; }
-            }
+            for (let i = 0; i < items.length; i++) { if (items[i].type.indexOf('image') !== -1) { imageFile = items[i].getAsFile(); break; } }
             if (imageFile) { event.preventDefault(); loadImageForCropping(imageFile); }
         });
         copyTextBtn.addEventListener('click', () => {
-            if (ocrResult.innerText) { // .innerText lebih cocok untuk mengambil teks dari multi-elemen
+            if (ocrResult.innerText) {
                 navigator.clipboard.writeText(ocrResult.innerText)
                     .then(() => showSnackbar('Teks berhasil disalin!'))
                     .catch(() => showSnackbar('Gagal menyalin teks.'));
@@ -452,10 +461,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-            applyTheme(savedTheme);
-            applyDeviceView(0); 
-            loadApiKey();
-            setUIState('idle');
+            applyTheme(savedTheme); applyDeviceView(0); loadApiKey(); setUIState('idle');
         });
     </script>
 </body>
