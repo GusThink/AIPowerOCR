@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AIPowerOCR: Ekstrak Teks dari Gambar</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js" defer></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+        /* PENAMBAHAN: Mengganti Amiri dengan Noto Naskh Arabic */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
         
         body { font-family: 'Inter', sans-serif; }
-        .font-amiri { font-family: 'Amiri', serif; }
+        /* PENAMBAHAN: Mengubah kelas font ke .font-naskh */
+        .font-naskh { font-family: 'Noto Naskh Arabic', serif; }
 
         :root {
             --bg-primary-rgb: 15, 23, 42;
@@ -71,31 +75,26 @@
         #camera-stream { transform: scaleX(-1); }
 
         #scan-animation .scan-line {
-            width: 100%;
-            height: 4px;
+            width: 100%; height: 4px;
             background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
             box-shadow: 0 0 15px var(--accent-color);
-            border-radius: 5px;
-            position: absolute;
-            top: 0;
-            left: 0;
+            border-radius: 5px; position: absolute; top: 0; left: 0;
             animation: scan 2s infinite ease-in-out;
         }
         @keyframes scan {
-            0% { top: 0; }
-            50% { top: 100%; }
-            100% { top: 0; }
+            0% { top: 0; } 50% { top: 100%; } 100% { top: 0; }
         }
 
-        #dropdown-menu {
-            transition: opacity 0.2s ease, transform 0.2s ease;
-        }
+        #dropdown-menu { transition: opacity 0.2s ease, transform 0.2s ease; }
 
         .glass-menubar {
             background-color: rgba(var(--bg-primary-rgb), 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
         }
+
+        /* PENAMBAHAN: Style untuk kontainer Cropper */
+        #image-cropper-container { max-height: 400px; }
+        #image-to-crop { max-width: 100%; }
     </style>
 </head>
 <body class="bg-primary text-primary">
@@ -103,18 +102,12 @@
     <header class="glass-menubar sticky top-0 z-50 py-2 px-4 sm:px-6 md:px-8 border-b border-custom">
         <div class="max-w-7xl mx-auto grid grid-cols-3 items-center">
             <div class="w-10"></div> 
-
             <div class="flex items-center gap-2 justify-self-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-accent">
-                    <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
-                    <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
-                    <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
-                    <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
-                    <path d="M7 12h10"></path>
+                    <path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><path d="M7 12h10"></path>
                 </svg>
                 <h1 class="text-xl font-bold text-primary">AIPower<span class="text-accent">OCR</span></h1>
             </div>
-            
             <div class="relative justify-self-end">
                 <button id="menu-btn" class="p-2 rounded-full text-primary bg-tertiary/50 hover:bg-tertiary transition duration-300 focus:outline-none" title="Opsi">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
@@ -144,29 +137,41 @@
         <div id="device-preview-container" class="mx-auto main-card border-custom flex flex-col mobile-view">
             <div id="content-container" class="flex-grow p-4 sm:p-6 space-y-6">
 
-                <div id="image-input-area" class="relative text-center p-6 bg-secondary rounded-xl border-2 border-dashed border-custom flex flex-col items-center justify-center min-h-[200px] overflow-hidden">
-                    <div id="image-placeholder" class="flex flex-col items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-secondary mx-auto mb-4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                        <p class="text-primary font-semibold">Letakkan Gambar di Sini</p>
-                        <p class="text-secondary text-sm mt-1">Tempel (Ctrl+V), unggah, atau gunakan kamera.</p>
+                <div id="image-input-area">
+                    <div class="text-center p-6 bg-secondary rounded-xl border-2 border-dashed border-custom flex flex-col items-center justify-center min-h-[200px] overflow-hidden">
+                        <div id="image-placeholder" class="flex flex-col items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-secondary mx-auto mb-4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                            <p class="text-primary font-semibold">Letakkan Gambar di Sini</p>
+                            <p class="text-secondary text-sm mt-1">Tempel (Ctrl+V), unggah, atau gunakan kamera.</p>
+                        </div>
                     </div>
-                    <div id="scan-animation" class="hidden w-full h-full flex flex-col items-center justify-center">
-                        <div class="scan-line"></div>
-                        <p class="text-accent text-sm font-semibold z-10">Menganalisis Gambar...</p>
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                        <button id="upload-image-btn" class="flex-1 flex items-center justify-center gap-2 py-3 px-3 text-sm font-semibold bg-tertiary text-primary rounded-lg hover:bg-slate-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.2 15c.7-1.2 1-2.5.7-3.9-.6-2.4-3-4-5.4-4-1.3 0-2.5.5-3.5 1.4-1-1.3-2.8-2-4.6-1.7-2.3.4-4.1 2.2-4.4 4.6-.3 2.1.8 4 2.3 5.2"></path><path d="M12 12v9"></path><path d="m16 16-4-4-4 4"></path></svg>
+                            Unggah
+                        </button>
+                        <button id="use-camera-btn" class="flex-1 flex items-center justify-center gap-2 py-3 px-3 text-sm font-semibold bg-tertiary text-primary rounded-lg hover:bg-slate-600 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+                            Kamera
+                        </button>
+                    </div>
+                    <input type="file" id="image-upload-input" class="hidden" accept="image/*">
+                </div>
+
+                <div id="cropper-stage" class="hidden space-y-4">
+                    <div id="image-cropper-container" class="bg-secondary rounded-xl border border-custom">
+                        <img id="image-to-crop">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                         <button id="reset-btn" class="flex-1 flex items-center justify-center gap-2 py-3 px-3 text-sm font-semibold bg-tertiary text-primary rounded-lg hover:bg-slate-600 transition-colors">
+                            Batal
+                        </button>
+                        <button id="extract-btn" class="flex-1 flex items-center justify-center gap-2 py-3 px-3 text-sm font-bold text-white rounded-lg shadow-lg" style="background-image: var(--btn-accent-bg);">
+                            Ekstrak Teks
+                        </button>
                     </div>
                 </div>
 
-                <div class="mt-4 grid grid-cols-2 gap-3">
-                    <button id="upload-image-btn" class="flex-1 flex items-center justify-center gap-2 py-3 px-3 text-sm font-semibold bg-tertiary text-primary rounded-lg hover:bg-slate-600 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.2 15c.7-1.2 1-2.5.7-3.9-.6-2.4-3-4-5.4-4-1.3 0-2.5.5-3.5 1.4-1-1.3-2.8-2-4.6-1.7-2.3.4-4.1 2.2-4.4 4.6-.3 2.1.8 4 2.3 5.2"></path><path d="M12 12v9"></path><path d="m16 16-4-4-4 4"></path></svg>
-                        Unggah
-                    </button>
-                    <button id="use-camera-btn" class="flex-1 flex items-center justify-center gap-2 py-3 px-3 text-sm font-semibold bg-tertiary text-primary rounded-lg hover:bg-slate-600 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
-                        Kamera
-                    </button>
-                </div>
-                <input type="file" id="image-upload-input" class="hidden" accept="image/*">
 
                 <div class="bg-secondary rounded-xl shadow-lg border border-custom overflow-hidden">
                     <div class="p-4 flex justify-between items-center border-b border-custom">
@@ -177,6 +182,10 @@
                          </button>
                     </div>
                     <div id="output-container" class="p-4 min-h-[150px]">
+                        <div id="scan-animation" class="hidden w-full h-full flex flex-col items-center justify-center relative overflow-hidden min-h-[100px]">
+                            <div class="scan-line"></div>
+                            <p class="text-accent text-sm font-semibold z-10">Menganalisis Teks...</p>
+                        </div>
                         <p id="output-placeholder" class="text-secondary text-center p-10">Hasil teks akan muncul di sini.</p>
                         <pre id="ocr-result" class="text-primary whitespace-pre-wrap text-sm" style="display: none;"></pre>
                     </div>
@@ -225,11 +234,11 @@
     <canvas id="camera-canvas" class="hidden"></canvas>
 
     <script type="module">
+        // --- Inisialisasi Elemen DOM ---
         const body = document.body;
         const ocrResult = document.getElementById('ocr-result');
         const outputPlaceholder = document.getElementById('output-placeholder');
         const copyTextBtn = document.getElementById('copy-text-btn');
-        const imagePlaceholder = document.getElementById('image-placeholder');
         const apiKeyInput = document.getElementById('api-key-input');
         const apiKeyStatus = document.getElementById('api-key-status');
         const apiSettingsView = document.getElementById('api-settings-view');
@@ -245,60 +254,51 @@
         const menuDeviceToggle = document.getElementById('menu-device-toggle');
         const menuThemeToggle = document.getElementById('menu-theme-toggle');
         const menuApiSettings = document.getElementById('menu-api-settings');
+        
+        // --- PENAMBAHAN: Inisialisasi Elemen Cropper ---
+        const imageInputArea = document.getElementById('image-input-area');
+        const cropperStage = document.getElementById('cropper-stage');
+        const imageToCrop = document.getElementById('image-to-crop');
+        const extractBtn = document.getElementById('extract-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        let cropper = null;
         let currentStream = null;
 
+        // --- Fungsi Notifikasi & Bantuan ---
         let snackbarTimeout;
         function showSnackbar(message) {
             const snackbar = document.getElementById('snackbar');
             clearTimeout(snackbarTimeout);
-            snackbar.textContent = message;
-            snackbar.className = 'show';
+            snackbar.textContent = message; snackbar.className = 'show';
             snackbarTimeout = setTimeout(() => { snackbar.className = snackbar.className.replace('show', ''); }, 3000);
         }
-
         function applyClickFeedback(element) {
             if(!element) return;
             element.classList.add('btn-active-feedback');
             setTimeout(() => { element.classList.remove('btn-active-feedback'); }, 150);
         }
 
-        menuBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            dropdownMenu.classList.toggle('hidden');
-        });
-        document.addEventListener('click', () => {
-            if (!dropdownMenu.classList.contains('hidden')) {
-                dropdownMenu.classList.add('hidden');
-            }
-        });
-
-        function applyTheme(theme) {
-            body.classList.toggle('light-theme', theme === 'light');
-        }
+        // --- Logika Menu & UI Controls ---
+        menuBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdownMenu.classList.toggle('hidden'); });
+        document.addEventListener('click', () => { if (!dropdownMenu.classList.contains('hidden')) dropdownMenu.classList.add('hidden'); });
+        function applyTheme(theme) { body.classList.toggle('light-theme', theme === 'light'); }
         menuThemeToggle.addEventListener('click', () => {
             const newTheme = body.classList.contains('light-theme') ? 'dark' : 'light';
             localStorage.setItem('theme', newTheme);
             applyTheme(newTheme);
             applyClickFeedback(menuThemeToggle);
         });
-        
         let currentDeviceIndex = 0;
         const deviceStates = ['mobile-view', 'tablet-view', 'pc-view'];
         function applyDeviceView(index) {
-            const devicePreview = document.getElementById('device-preview-container');
-            deviceStates.forEach(state => devicePreview.classList.remove(state));
-            devicePreview.classList.add(deviceStates[index]);
+            document.getElementById('device-preview-container').className = `mx-auto main-card border-custom flex flex-col ${deviceStates[index]}`;
             currentDeviceIndex = index;
         }
-        menuDeviceToggle.addEventListener('click', () => {
-            applyDeviceView((currentDeviceIndex + 1) % deviceStates.length);
-            applyClickFeedback(menuDeviceToggle);
-        });
-        
-        menuApiSettings.addEventListener('click', () => {
-            apiSettingsView.classList.add('view-active');
-        });
+        menuDeviceToggle.addEventListener('click', () => { applyDeviceView((currentDeviceIndex + 1) % deviceStates.length); applyClickFeedback(menuDeviceToggle); });
+        menuApiSettings.addEventListener('click', () => { apiSettingsView.classList.add('view-active'); });
+        document.getElementById('back-from-api-settings-btn').addEventListener('click', () => apiSettingsView.classList.remove('view-active'));
 
+        // --- Logika API Key ---
         function loadApiKey() {
             const savedKey = localStorage.getItem('user_google_api_key');
             if (savedKey) {
@@ -307,7 +307,6 @@
                 apiKeyStatus.style.color = 'var(--text-accent)';
             }
         }
-        document.getElementById('back-from-api-settings-btn').addEventListener('click', () => apiSettingsView.classList.remove('view-active'));
         document.getElementById('save-api-key-btn').addEventListener('click', () => {
             const key = apiKeyInput.value.trim();
             if (key && key.startsWith('AIzaSy')) {
@@ -318,69 +317,95 @@
             } else { showSnackbar('Format Kunci API tidak valid.'); }
         });
 
+        // --- Logika Status UI & Font ---
         function setUIState(state) {
             const isTextArabic = (text) => /[\u0600-\u06FF]/.test(text);
-            scanAnimation.classList.toggle('hidden', state !== 'loading');
-            imagePlaceholder.classList.toggle('hidden', state === 'loading');
+            const outputScanAnimation = document.querySelector('#output-container #scan-animation');
+            if (outputScanAnimation) outputScanAnimation.classList.toggle('hidden', state !== 'loading');
+            
+            outputPlaceholder.classList.toggle('hidden', state === 'loading' || state === 'result');
+            ocrResult.style.display = (state === 'result') ? 'block' : 'none';
             copyTextBtn.disabled = (state !== 'result');
             
             if (state === 'result' && ocrResult.textContent) {
                 const isArabic = isTextArabic(ocrResult.textContent);
                 ocrResult.style.direction = isArabic ? 'rtl' : 'ltr';
                 ocrResult.style.textAlign = isArabic ? 'right' : 'left';
-                ocrResult.classList.toggle('font-amiri', isArabic);
+                // PENAMBAHAN: Menggunakan class .font-naskh untuk Arab
+                ocrResult.classList.toggle('font-naskh', isArabic);
                 ocrResult.classList.toggle('font-sans', !isArabic);
             }
         }
-        
+
+        // --- Logika Kamera ---
         async function openCamera() {
-            if (!('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices)) {
-                showSnackbar('Kamera tidak didukung di browser ini.');
-                return;
-            }
+            if (!('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices)) { showSnackbar('Kamera tidak didukung.'); return; }
             cameraModal.classList.remove('hidden');
             try {
-                const constraints = { video: { facingMode: 'environment' } };
-                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
                 videoElement.srcObject = currentStream;
-            } catch (err) {
-                showSnackbar('Gagal mengakses kamera. Pastikan Anda memberikan izin.');
-                closeCamera();
-            }
+            } catch (err) { showSnackbar('Gagal mengakses kamera. Berikan izin.'); closeCamera(); }
         }
         function closeCamera() {
             if (currentStream) { currentStream.getTracks().forEach(track => track.stop()); }
-            cameraModal.classList.add('hidden');
-            videoElement.srcObject = null;
+            cameraModal.classList.add('hidden'); videoElement.srcObject = null;
         }
         captureBtn.addEventListener('click', () => {
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
+            canvasElement.width = videoElement.videoWidth; canvasElement.height = videoElement.videoHeight;
             const context = canvasElement.getContext('2d');
-            context.translate(canvasElement.width, 0);
-            context.scale(-1, 1);
+            context.translate(canvasElement.width, 0); context.scale(-1, 1);
             context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
             canvasElement.toBlob(blob => {
                 if (blob) {
-                    const imageFile = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
-                    processImageFile(imageFile);
+                    const imageFile = new File([blob], `capture.jpg`, { type: 'image/jpeg' });
+                    loadImageForCropping(imageFile);
                 }
             }, 'image/jpeg');
             closeCamera();
         });
+        
+        // --- PENAMBAHAN: Logika Baru untuk Cropping ---
+        function loadImageForCropping(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imageInputArea.classList.add('hidden');
+                cropperStage.classList.remove('hidden');
+                imageToCrop.src = e.target.result;
 
-        async function processImageFile(file) {
+                if (cropper) { cropper.destroy(); }
+                cropper = new Cropper(imageToCrop, {
+                    viewMode: 1,
+                    background: false,
+                    autoCropArea: 0.8,
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        extractBtn.addEventListener('click', () => {
+            if (!cropper) return;
+            const canvas = cropper.getCroppedCanvas();
+            canvas.toBlob((blob) => {
+                const croppedFile = new File([blob], 'cropped.png', { type: 'image/png' });
+                performOCR(croppedFile);
+            });
+        });
+
+        resetBtn.addEventListener('click', () => {
+            if (cropper) { cropper.destroy(); cropper = null; }
+            imageInputArea.classList.remove('hidden');
+            cropperStage.classList.add('hidden');
+            imageToCrop.src = '';
+            setUIState('idle'); // Kembali ke state awal
+        });
+
+        // --- Logika Inti OCR (Direfaktor) ---
+        async function performOCR(file) {
             if (!file) return;
             const apiKey = localStorage.getItem('user_google_api_key');
-            if (!apiKey) {
-                showSnackbar('Kunci API belum diatur.');
-                menuApiSettings.click();
-                return;
-            }
+            if (!apiKey) { showSnackbar('Kunci API belum diatur.'); menuApiSettings.click(); return; }
+            
             setUIState('loading');
-            ocrResult.style.display = 'none';
-            outputPlaceholder.style.display = 'block';
-            outputPlaceholder.textContent = 'Memproses gambar...';
 
             try {
                 const base64Data = await new Promise((resolve, reject) => {
@@ -391,46 +416,33 @@
                 });
                 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                const payload = {
-                    contents: [{
-                        parts: [
-                            { text: "Extract any and all text from this image. Provide only the extracted text, preserving the original line breaks and structure as much as possible. Do not add any commentary, headings, or markdown formatting." },
-                            { inlineData: { mimeType: file.type, data: base64Data } }
-                        ]
-                    }]
-                };
+                const payload = { contents: [{ parts: [{ text: "Extract text from this image. Provide only the extracted text." }, { inlineData: { mimeType: file.type, data: base64Data } }] }] };
 
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error.message || `API Error: ${response.status}`);
-                }
+                if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error.message || `API Error`); }
+                
                 const result = await response.json();
                 const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
                 if (extractedText) {
                     ocrResult.textContent = extractedText;
-                    ocrResult.style.display = 'block';
-                    outputPlaceholder.style.display = 'none';
                     showSnackbar('Teks berhasil diekstrak!');
                     setUIState('result');
                 } else {
-                    outputPlaceholder.textContent = 'Tidak ada teks yang terdeteksi pada gambar.';
                     showSnackbar('Tidak ada teks yang ditemukan.');
                     setUIState('idle');
                 }
             } catch (error) {
-                console.error("OCR Error:", error);
-                outputPlaceholder.textContent = `Gagal mengekstrak teks: ${error.message}`;
                 showSnackbar(`Terjadi kesalahan: ${error.message}`);
                 setUIState('idle');
             }
         }
         
+        // --- Event Listeners untuk Input Awal ---
         const uploadImageBtn = document.getElementById('upload-image-btn');
         const imageUploadInput = document.getElementById('image-upload-input');
         uploadImageBtn.addEventListener('click', () => imageUploadInput.click());
-        imageUploadInput.addEventListener('change', (e) => processImageFile(e.target.files[0]));
+        imageUploadInput.addEventListener('change', (e) => e.target.files[0] && loadImageForCropping(e.target.files[0]));
         useCameraBtn.addEventListener('click', openCamera);
         closeCameraBtn.addEventListener('click', closeCamera);
         document.addEventListener('paste', (event) => {
@@ -439,7 +451,7 @@
             for (let i = 0; i < items.length; i++) {
                 if (items[i].type.indexOf('image') !== -1) { imageFile = items[i].getAsFile(); break; }
             }
-            if (imageFile) { event.preventDefault(); processImageFile(imageFile); }
+            if (imageFile) { event.preventDefault(); loadImageForCropping(imageFile); }
         });
         copyTextBtn.addEventListener('click', () => {
             if (ocrResult.textContent) {
@@ -450,6 +462,7 @@
             }
         });
 
+        // --- Inisialisasi Aplikasi ---
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             applyTheme(savedTheme);
