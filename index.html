@@ -8,11 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js" defer></script>
     <style>
-        /* PENAMBAHAN: Mengganti Amiri dengan Noto Naskh Arabic */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
         
         body { font-family: 'Inter', sans-serif; }
-        /* PENAMBAHAN: Mengubah kelas font ke .font-naskh */
         .font-naskh { font-family: 'Noto Naskh Arabic', serif; }
 
         :root {
@@ -92,7 +90,6 @@
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
         }
 
-        /* PENAMBAHAN: Style untuk kontainer Cropper */
         #image-cropper-container { max-height: 400px; }
         #image-to-crop { max-width: 100%; }
     </style>
@@ -172,7 +169,6 @@
                     </div>
                 </div>
 
-
                 <div class="bg-secondary rounded-xl shadow-lg border border-custom overflow-hidden">
                     <div class="p-4 flex justify-between items-center border-b border-custom">
                          <h2 class="text-lg font-bold text-accent">Hasil Ekstraksi</h2>
@@ -187,7 +183,7 @@
                             <p class="text-accent text-sm font-semibold z-10">Menganalisis Teks...</p>
                         </div>
                         <p id="output-placeholder" class="text-secondary text-center p-10">Hasil teks akan muncul di sini.</p>
-                        <pre id="ocr-result" class="text-primary whitespace-pre-wrap text-sm" style="display: none;"></pre>
+                        <div id="ocr-result" class="text-primary text-sm space-y-4" style="display: none;"></div>
                     </div>
                 </div>
             </div>
@@ -234,7 +230,6 @@
     <canvas id="camera-canvas" class="hidden"></canvas>
 
     <script type="module">
-        // --- Inisialisasi Elemen DOM ---
         const body = document.body;
         const ocrResult = document.getElementById('ocr-result');
         const outputPlaceholder = document.getElementById('output-placeholder');
@@ -242,7 +237,6 @@
         const apiKeyInput = document.getElementById('api-key-input');
         const apiKeyStatus = document.getElementById('api-key-status');
         const apiSettingsView = document.getElementById('api-settings-view');
-        const scanAnimation = document.getElementById('scan-animation');
         const cameraModal = document.getElementById('camera-modal');
         const videoElement = document.getElementById('camera-stream');
         const canvasElement = document.getElementById('camera-canvas');
@@ -254,8 +248,6 @@
         const menuDeviceToggle = document.getElementById('menu-device-toggle');
         const menuThemeToggle = document.getElementById('menu-theme-toggle');
         const menuApiSettings = document.getElementById('menu-api-settings');
-        
-        // --- PENAMBAHAN: Inisialisasi Elemen Cropper ---
         const imageInputArea = document.getElementById('image-input-area');
         const cropperStage = document.getElementById('cropper-stage');
         const imageToCrop = document.getElementById('image-to-crop');
@@ -264,7 +256,6 @@
         let cropper = null;
         let currentStream = null;
 
-        // --- Fungsi Notifikasi & Bantuan ---
         let snackbarTimeout;
         function showSnackbar(message) {
             const snackbar = document.getElementById('snackbar');
@@ -278,15 +269,12 @@
             setTimeout(() => { element.classList.remove('btn-active-feedback'); }, 150);
         }
 
-        // --- Logika Menu & UI Controls ---
         menuBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdownMenu.classList.toggle('hidden'); });
         document.addEventListener('click', () => { if (!dropdownMenu.classList.contains('hidden')) dropdownMenu.classList.add('hidden'); });
         function applyTheme(theme) { body.classList.toggle('light-theme', theme === 'light'); }
         menuThemeToggle.addEventListener('click', () => {
             const newTheme = body.classList.contains('light-theme') ? 'dark' : 'light';
-            localStorage.setItem('theme', newTheme);
-            applyTheme(newTheme);
-            applyClickFeedback(menuThemeToggle);
+            localStorage.setItem('theme', newTheme); applyTheme(newTheme); applyClickFeedback(menuThemeToggle);
         });
         let currentDeviceIndex = 0;
         const deviceStates = ['mobile-view', 'tablet-view', 'pc-view'];
@@ -298,7 +286,6 @@
         menuApiSettings.addEventListener('click', () => { apiSettingsView.classList.add('view-active'); });
         document.getElementById('back-from-api-settings-btn').addEventListener('click', () => apiSettingsView.classList.remove('view-active'));
 
-        // --- Logika API Key ---
         function loadApiKey() {
             const savedKey = localStorage.getItem('user_google_api_key');
             if (savedKey) {
@@ -311,33 +298,44 @@
             const key = apiKeyInput.value.trim();
             if (key && key.startsWith('AIzaSy')) {
                 localStorage.setItem('user_google_api_key', key);
-                showSnackbar('Kunci API berhasil disimpan.');
-                loadApiKey();
+                showSnackbar('Kunci API berhasil disimpan.'); loadApiKey();
                 setTimeout(() => apiSettingsView.classList.remove('view-active'), 500);
             } else { showSnackbar('Format Kunci API tidak valid.'); }
         });
 
-        // --- Logika Status UI & Font ---
+        // PENYESUAIAN: Fungsi setUIState disederhanakan, logika font pindah ke renderMixedLanguageText
         function setUIState(state) {
-            const isTextArabic = (text) => /[\u0600-\u06FF]/.test(text);
             const outputScanAnimation = document.querySelector('#output-container #scan-animation');
             if (outputScanAnimation) outputScanAnimation.classList.toggle('hidden', state !== 'loading');
-            
             outputPlaceholder.classList.toggle('hidden', state === 'loading' || state === 'result');
             ocrResult.style.display = (state === 'result') ? 'block' : 'none';
             copyTextBtn.disabled = (state !== 'result');
-            
-            if (state === 'result' && ocrResult.textContent) {
-                const isArabic = isTextArabic(ocrResult.textContent);
-                ocrResult.style.direction = isArabic ? 'rtl' : 'ltr';
-                ocrResult.style.textAlign = isArabic ? 'right' : 'left';
-                // PENAMBAHAN: Menggunakan class .font-naskh untuk Arab
-                ocrResult.classList.toggle('font-naskh', isArabic);
-                ocrResult.classList.toggle('font-sans', !isArabic);
-            }
         }
 
-        // --- Logika Kamera ---
+        // PENAMBAHAN: Fungsi baru untuk merender teks multi-bahasa per paragraf
+        function renderMixedLanguageText(container, text) {
+            container.innerHTML = ''; // Kosongkan hasil sebelumnya
+            if (!text || typeof text !== 'string') return;
+
+            const paragraphs = text.split('\n');
+
+            paragraphs.forEach(paragraphText => {
+                const p = document.createElement('p');
+                p.textContent = paragraphText || '\u00A0'; // Tambahkan spasi non-breaking jika paragraf kosong untuk menjaga jarak
+
+                const isArabic = /^[\u0600-\u06FF]/.test(paragraphText.trim());
+
+                if (isArabic) {
+                    p.className = 'font-naskh text-right';
+                    p.style.direction = 'rtl';
+                } else {
+                    p.className = 'font-sans text-left';
+                    p.style.direction = 'ltr';
+                }
+                container.appendChild(p);
+            });
+        }
+        
         async function openCamera() {
             if (!('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices)) { showSnackbar('Kamera tidak didukung.'); return; }
             cameraModal.classList.remove('hidden');
@@ -364,42 +362,32 @@
             closeCamera();
         });
         
-        // --- PENAMBAHAN: Logika Baru untuk Cropping ---
         function loadImageForCropping(file) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 imageInputArea.classList.add('hidden');
                 cropperStage.classList.remove('hidden');
                 imageToCrop.src = e.target.result;
-
                 if (cropper) { cropper.destroy(); }
-                cropper = new Cropper(imageToCrop, {
-                    viewMode: 1,
-                    background: false,
-                    autoCropArea: 0.8,
-                });
+                cropper = new Cropper(imageToCrop, { viewMode: 1, background: false, autoCropArea: 0.8 });
             };
             reader.readAsDataURL(file);
         }
-
         extractBtn.addEventListener('click', () => {
             if (!cropper) return;
-            const canvas = cropper.getCroppedCanvas();
-            canvas.toBlob((blob) => {
+            cropper.getCroppedCanvas().toBlob((blob) => {
                 const croppedFile = new File([blob], 'cropped.png', { type: 'image/png' });
                 performOCR(croppedFile);
             });
         });
-
         resetBtn.addEventListener('click', () => {
             if (cropper) { cropper.destroy(); cropper = null; }
             imageInputArea.classList.remove('hidden');
             cropperStage.classList.add('hidden');
             imageToCrop.src = '';
-            setUIState('idle'); // Kembali ke state awal
+            setUIState('idle'); 
         });
 
-        // --- Logika Inti OCR (Direfaktor) ---
         async function performOCR(file) {
             if (!file) return;
             const apiKey = localStorage.getItem('user_google_api_key');
@@ -425,7 +413,8 @@
                 const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
                 if (extractedText) {
-                    ocrResult.textContent = extractedText;
+                    // PENYESUAIAN: Memanggil fungsi render baru
+                    renderMixedLanguageText(ocrResult, extractedText);
                     showSnackbar('Teks berhasil diekstrak!');
                     setUIState('result');
                 } else {
@@ -438,7 +427,6 @@
             }
         }
         
-        // --- Event Listeners untuk Input Awal ---
         const uploadImageBtn = document.getElementById('upload-image-btn');
         const imageUploadInput = document.getElementById('image-upload-input');
         uploadImageBtn.addEventListener('click', () => imageUploadInput.click());
@@ -449,20 +437,19 @@
             const items = (event.clipboardData || window.clipboardData).items;
             let imageFile = null;
             for (let i = 0; i < items.length; i++) {
-                if (items[i].type.indexOf('image') !== -1) { imageFile = items[i].getAsFile(); break; }
+                if (items[i].type.indexOf('image') !== 'undefined') { imageFile = items[i].getAsFile(); break; }
             }
             if (imageFile) { event.preventDefault(); loadImageForCropping(imageFile); }
         });
         copyTextBtn.addEventListener('click', () => {
-            if (ocrResult.textContent) {
-                navigator.clipboard.writeText(ocrResult.textContent)
+            if (ocrResult.innerText) { // .innerText lebih cocok untuk mengambil teks dari multi-elemen
+                navigator.clipboard.writeText(ocrResult.innerText)
                     .then(() => showSnackbar('Teks berhasil disalin!'))
                     .catch(() => showSnackbar('Gagal menyalin teks.'));
                 applyClickFeedback(copyTextBtn);
             }
         });
 
-        // --- Inisialisasi Aplikasi ---
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             applyTheme(savedTheme);
