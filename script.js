@@ -1,282 +1,228 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // === DOM Element Selections ===
+    // --- PENTING: PENGATURAN KUNCI API ---
+    // Dapatkan Kunci API gratis dari Google AI Studio dan tempel di sini.
+    const API_KEY = 'GANTI_DENGAN_API_KEY_ANDA';
+
+    // --- Pemilihan Elemen DOM ---
     const themeToggle = document.getElementById('theme-toggle');
+    const deviceToggle = document.getElementById('device-toggle');
+    const devicePreview = document.getElementById('device-preview-container');
     const imageDropZone = document.getElementById('image-drop-zone');
-    const uploadInput = document.getElementById('upload-input');
+    const imageUploadInput = document.getElementById('image-upload-input');
+    const cameraInput = document.getElementById('camera-input');
     const uploadBtn = document.getElementById('upload-btn');
-    const imagePreviewContainer = document.getElementById('image-preview-container');
-    const imagePreview = document.getElementById('image-preview');
-    const placeholderText = document.getElementById('placeholder-text');
-    const loadingAnimation = document.getElementById('loading-animation');
-    const loadingText = document.getElementById('loading-text');
-    const textOutput = document.getElementById('text-output');
-    const copyBtn = document.getElementById('copy-btn');
-    const clearBtn = document.getElementById('clear-btn');
-    const extractBtn = document.getElementById('extract-btn');
-    const modal = document.getElementById('modal');
-    const modalBody = document.getElementById('modal-body');
-    const closeModalBtn = document.querySelector('.close-modal-btn');
-    const openSidebarBtn = document.getElementById('openSidebarBtn');
-    const closeSidebarBtn = document.getElementById('closeSidebarBtn');
-    const sidebar = document.getElementById('sidebar');
-    const viewModeBtn = document.getElementById('view-mode-btn');
-    const mainContainer = document.getElementById('main-container');
-    const apiKeyInput = document.getElementById('api-key-input');
     const cameraBtn = document.getElementById('camera-btn');
-    const cameraModal = document.getElementById('camera-modal');
-    const cameraStream = document.getElementById('camera-stream');
-    const captureBtn = document.getElementById('capture-btn');
-    const closeCameraBtn = document.getElementById('close-camera-btn');
-    const clearImageBtn = document.getElementById('clear-image-btn');
+    const imagePreview = document.getElementById('image-preview');
+    const outputText = document.getElementById('output-text');
+    const copyBtn = document.getElementById('copy-btn');
+    const downloadBtn = document.getElementById('download-btn');
+    const initialState = document.getElementById('initial-state');
+    const loadingState = document.getElementById('loading-state');
+    
+    // --- Logika Ganti Tema (Dark/Light Mode) ---
+    const applyTheme = (theme) => {
+        document.body.classList.toggle('light-theme', theme === 'light');
+        document.getElementById('theme-icon-light').classList.toggle('hidden', theme !== 'light');
+        document.getElementById('theme-icon-dark').classList.toggle('hidden', theme === 'light');
+    };
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    applyTheme(savedTheme);
+    themeToggle.addEventListener('click', () => {
+        const newTheme = document.body.classList.contains('light-theme') ? 'dark' : 'light';
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+    });
 
+    // --- Logika Ganti Tampilan Perangkat ---
+    const deviceStates = ['mobile-view', 'tablet-view', 'pc-view'];
+    const deviceIcons = {
+        'mobile-view': document.getElementById('icon-mobile'),
+        'tablet-view': document.getElementById('icon-tablet'),
+        'pc-view': document.getElementById('icon-pc')
+    };
+    let currentDeviceIndex = 0;
+    const applyDeviceView = (index) => {
+        deviceStates.forEach(state => devicePreview.classList.remove(state));
+        Object.values(deviceIcons).forEach(icon => icon.classList.add('hidden'));
+        
+        const newDeviceState = deviceStates[index];
+        devicePreview.classList.add(newDeviceState);
+        deviceIcons[newDeviceState].classList.remove('hidden');
+        currentDeviceIndex = index;
+    };
+    deviceToggle.addEventListener('click', () => {
+        applyDeviceView((currentDeviceIndex + 1) % deviceStates.length);
+    });
 
-    let cropper = null;
-    let activeStream = null;
+    // --- Fungsi Notifikasi (Snackbar) ---
+    let snackbarTimeout;
+    const showSnackbar = (message) => {
+        const snackbar = document.getElementById('snackbar');
+        clearTimeout(snackbarTimeout);
+        snackbar.textContent = message;
+        snackbar.className = 'show';
+        snackbarTimeout = setTimeout(() => {
+            snackbar.className = snackbar.className.replace('show', '');
+        }, 3000);
+    };
 
-    // === The master prompt for Gemini Vision OCR ===
-    const GEMINI_OCR_PROMPT = `Anda adalah AI OCR Assistant dengan tingkat presisi tertinggi, yang bertugas sebagai pemindai visual murni.
+    // --- Fungsi Utama OCR ---
+    const performOCR = async (file) => {
+        if (!API_KEY || API_KEY === 'GANTI_DENGAN_API_KEY_ANDA') {
+            showSnackbar("Error: Kunci API belum diatur di js/app.js");
+            return; // Hentikan fungsi jika API Key belum diisi
+        }
 
+        // 1. Tampilkan status loading
+        loadingState.classList.remove('hidden');
+        initialState.classList.add('hidden');
+        imagePreview.classList.add('hidden');
+        outputText.value = "";
+
+        // 2. Konversi file gambar ke format base64
+        const toBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = error => reject(error);
+        });
+
+        try {
+            const base64Image = await toBase64(file);
+
+            // 3. Siapkan data untuk dikirim ke Gemini API
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
+            
+            // Inilah PROMPT KHUSUS yang kamu minta, kita masukkan langsung ke sini.
+            const systemPrompt = `Anda adalah AI OCR Assistant dengan tingkat presisi tertinggi, yang bertugas sebagai pemindai visual murni.
 ATURAN MUTLAK:
 1.  **Tugas Inti:** Ekstrak teks dari gambar SECARA VISUAL dan LITERAL. Anda adalah mesin fotokopi, bukan penafsir.
 2.  **Akurasi Total:** Salin setiap karakter, tanda baca, dan harakat (untuk teks Arab) persis seperti yang terlihat. JANGAN mengubah, mengoreksi, atau menghilangkan apa pun.
 3.  **Bahasa:** Mendukung Bahasa Indonesia dan Arab. Jika tercampur, pertahankan urutan dan tata letak aslinya.
 4.  **Teks Rusak:** Untuk bagian yang benar-benar tidak terbaca, gunakan placeholder \`[tidak terbaca]\`.
-5.  **Tata Letak:** Pertahankan paragraf dan jeda baris sebisa mungkin. Jika teks dalam gambar bersambung dalam satu paragraf, JANGAN memecahnya menjadi paragraf baru di hasil.
-
+5.  **Tata Letak:** Pertahankan paragraf dan jeda baris sebisa mungkin. Jika teks dalam gambar bersambung dalam satu paragraf, JANGAN memecahnya menjadi paragraf baru di hasil. Jika ada beberapa gambar, gabungkan teksnya menjadi satu kesatuan yang utuh dan logis.
 ATURAN SPESIFIK KALIGRAFI ISLAMI (PALING KRUSIAL):
--   Jika Anda melihat lafaz "Allah" diikuti kaligrafi "ﷻ" atau "جَلَّ جَلَالُهُ", hasil Anda harus "Allah ﷻ" atau "Allah جَلَّ جَلَالُهُ".
+-   **Tugas Anda adalah menyalin TEKS ARAB dari simbol kaligrafi, bukan mengganti simbolnya.**
+-   Jika Anda melihat lafaz "Allah" diikuti kaligrafi "ﷻ" atau "جَلَّ جَلَالُهُ", hasil Anda harus "Allah ﷻ" atau "Allah جَلَّ جَلَالُهُ". JANGAN PERNAH menggantinya dengan "Allah ﷺ".
 -   Jika Anda melihat nama "Muhammad" diikuti kaligrafi "ﷺ", hasil Anda harus "Muhammad ﷺ".
--   Jika Anda melihat nama Sahabat diikuti kaligrafi "رضي الله عنه" atau "رضي الله عنهما", hasil Anda harus "Abu Bakar رضي الله عنه".
-
+-   Jika Anda melihat nama Sahabat (contoh: "Abu Bakar", "An-Nu'man bin Basyir") diikuti kaligrafi "رضي الله عنه" atau "رضي الله عنهما", hasil Anda harus "Abu Bakar رضي الله عنه" atau "An-Nu'man bin Basyir رضي الله عنهما".
+-   **KEGAGALAN UTAMA** adalah jika Anda melakukan interpretasi kontekstual. Contoh: mengganti "رضي الله عنه" menjadi "ﷺ", atau sebaliknya. JANGAN LAKUKAN ITU. Salin apa yang Anda lihat secara visual.
 FORMAT OUTPUT FINAL (HANYA INI, TANPA KATA PEMBUKA/PENUTUP):
 (Teks hasil pindai yang 100% akurat secara visual ada di sini)`;
 
-
-    // === API Key Management ===
-    apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
-    apiKeyInput.addEventListener('input', (e) => {
-        localStorage.setItem('geminiApiKey', e.target.value);
-    });
-
-    // === UI Management Functions ===
-    const showModal = (title, message) => {
-        modalBody.innerHTML = `<h3>${title}</h3><p>${message}</p>`;
-        modal.style.display = 'block';
-    };
-
-    closeModalBtn.onclick = () => { modal.style.display = 'none'; };
-    window.onclick = (event) => { if (event.target == modal) modal.style.display = 'none'; };
-
-    openSidebarBtn.onclick = () => { sidebar.style.width = '280px'; };
-    closeSidebarBtn.onclick = () => { sidebar.style.width = '0'; };
-
-    themeToggle.addEventListener('click', () => {
-        const root = document.documentElement;
-        const currentTheme = root.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        root.setAttribute('data-theme', newTheme);
-        
-        themeToggle.querySelector('.sun-icon').style.display = newTheme === 'light' ? 'block' : 'none';
-        themeToggle.querySelector('.moon-icon').style.display = newTheme === 'dark' ? 'block' : 'none';
-    });
-    
-    const viewModes = ['desktop', 'tablet', 'mobile'];
-    let currentModeIndex = 0;
-    viewModeBtn.addEventListener('click', () => {
-        currentModeIndex = (currentModeIndex + 1) % viewModes.length;
-        const newMode = viewModes[currentModeIndex];
-        mainContainer.classList.remove('view-desktop', 'view-tablet', 'view-mobile');
-        if (newMode !== 'desktop') mainContainer.classList.add(`view-${newMode}`);
-        
-        viewModeBtn.querySelectorAll('svg').forEach(icon => icon.style.display = 'none');
-        viewModeBtn.querySelector(`.${newMode}-icon`).style.display = 'block';
-    });
-
-    // === Image Handling ===
-    const handleFile = (file) => {
-        if (file && (file.type.startsWith('image/') || file instanceof Blob)) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                imagePreview.src = e.target.result;
-                placeholderText.style.display = 'none';
-                imagePreviewContainer.style.display = 'block';
-                clearImageBtn.style.display = 'flex';
-                if (cropper) cropper.destroy();
-                cropper = new Cropper(imagePreview, { viewMode: 1, background: false, autoCropArea: 1 });
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-    
-    uploadBtn.addEventListener('click', () => uploadInput.click());
-    uploadInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
-    imageDropZone.addEventListener('dragover', (e) => e.preventDefault());
-    imageDropZone.addEventListener('drop', (e) => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); });
-    document.addEventListener('paste', (e) => {
-        const items = e.clipboardData.items;
-        for (const item of items) {
-            if (item.type.includes('image')) { handleFile(item.getAsFile()); break; }
-        }
-    });
-
-    // === Logika Kamera ===
-    const openCamera = async () => {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            showModal('Error', 'Fitur kamera tidak didukung di browser Anda.');
-            return;
-        }
-        try {
-            activeStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            cameraStream.srcObject = activeStream;
-            cameraModal.style.display = 'block';
-        } catch (err) {
-            console.error("Camera Error:", err);
-            showModal('Gagal!', 'Tidak bisa mengakses kamera. Pastikan Anda memberikan izin.');
-        }
-    };
-
-    const closeCamera = () => {
-        if (activeStream) {
-            activeStream.getTracks().forEach(track => track.stop());
-        }
-        cameraModal.style.display = 'none';
-    };
-
-    const captureImage = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = cameraStream.videoWidth;
-        canvas.height = cameraStream.videoHeight;
-        const context = canvas.getContext('2d');
-        context.drawImage(cameraStream, 0, 0, canvas.width, canvas.height);
-        
-        canvas.toBlob(blob => {
-            handleFile(blob);
-            closeCamera();
-        }, 'image/png');
-    };
-
-    cameraBtn.addEventListener('click', openCamera);
-    closeCameraBtn.addEventListener('click', closeCamera);
-    captureBtn.addEventListener('click', captureImage);
-
-    // === Helper to convert image file to Base64 ===
-    const imageBlobToBase64 = (blob) => new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve({
-            mimeType: blob.type,
-            data: reader.result.split(',')[1]
-        });
-        reader.onerror = error => reject(error);
-        reader.readAsDataURL(blob);
-    });
-
-    // === Main Gemini API Call Function (TIDAK DIUBAH) ===
-    const callGeminiAPI = async (payload) => {
-        const apiKey = localStorage.getItem('geminiApiKey');
-        if (!apiKey) {
-            showModal('Error', 'Kunci API Gemini belum diatur. Silakan masukkan di menu.');
-            openSidebar();
-            return null;
-        }
-
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error("API Error:", errorData);
-            throw new Error(errorData.error.message || `HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        if (result.candidates?.[0]?.finishReason === 'SAFETY') {
-            throw new Error("Permintaan diblokir oleh filter keamanan Google.");
-        }
-        if (!text) {
-            console.error("Invalid API Response:", result);
-            throw new Error("Respons dari AI tidak valid atau tidak mengandung teks.");
-        }
-        return text;
-    };
-    
-    // === Extract Text Logic ===
-    const extractText = async () => {
-        if (!cropper) {
-            showModal('Error', 'Silakan pilih atau tempel gambar terlebih dahulu.');
-            return;
-        }
-
-        loadingAnimation.style.display = 'flex';
-        textOutput.value = '';
-
-        try {
-            loadingText.textContent = `Mengubah format gambar...`;
-            const canvas = cropper.getCroppedCanvas();
-            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-            const { mimeType, data: base64ImageData } = await imageBlobToBase64(blob);
-
-            loadingText.textContent = `AI sedang memindai...`;
-
             const payload = {
-                contents: [{
-                    parts: [
-                        { text: GEMINI_OCR_PROMPT },
-                        { inlineData: { mimeType, data: base64ImageData } }
+                "contents": [{
+                    "parts": [
+                        { "text": systemPrompt },
+                        { "inline_data": { "mime_type": file.type, "data": base64Image } }
                     ]
                 }]
             };
 
-            const resultText = await callGeminiAPI(payload);
+            // 4. Kirim request ke API
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error.message || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const text = data.candidates[0].content.parts[0].text;
             
-            textOutput.value = resultText;
-            showModal('Sukses!', 'Teks berhasil diekstrak!');
+            // 5. Tampilkan hasil
+            outputText.value = text.trim();
+            showSnackbar("Teks berhasil dipindai!");
 
         } catch (error) {
-            console.error("Extraction Error:", error);
-            showModal('Gagal!', `Terjadi kesalahan: ${error.message}`);
+            console.error("OCR Error:", error);
+            showSnackbar(`Error: ${error.message}`);
+            outputText.value = `Gagal memindai teks. Coba lagi.\n\nDetail Error: ${error.message}`;
         } finally {
-            loadingAnimation.style.display = 'none';
+            // 6. Kembalikan UI ke keadaan normal
+            loadingState.classList.add('hidden');
+            initialState.classList.remove('hidden'); // Kembali ke tampilan awal
         }
     };
-    
-    extractBtn.addEventListener('click', extractText);
-    
-    // === Output Button Functions ===
-    const clearImagePreview = () => {
-        if (cropper) {
-            cropper.destroy();
-            cropper = null;
+
+    // --- Fungsi Penanganan File (dari semua sumber) ---
+    const handleFile = (file) => {
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                imagePreview.classList.remove('hidden');
+                initialState.classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+            performOCR(file); // Langsung jalankan OCR setelah file dipilih
+        } else {
+            showSnackbar("Format file tidak didukung. Harap pilih gambar.");
         }
-        imagePreview.src = '';
-        imagePreviewContainer.style.display = 'none';
-        placeholderText.style.display = 'block';
-        clearImageBtn.style.display = 'none';
     };
 
-    clearImageBtn.addEventListener('click', clearImagePreview);
+    // --- Event Listener untuk Input ---
+    uploadBtn.addEventListener('click', () => imageUploadInput.click());
+    cameraBtn.addEventListener('click', () => cameraInput.click());
+    imageUploadInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+    cameraInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
 
+    // Drag and Drop
+    imageDropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        imageDropZone.classList.add('drag-over');
+    });
+    imageDropZone.addEventListener('dragleave', () => {
+        imageDropZone.classList.remove('drag-over');
+    });
+    imageDropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        imageDropZone.classList.remove('drag-over');
+        handleFile(e.dataTransfer.files[0]);
+    });
+    imageDropZone.addEventListener('click', (e) => {
+        // Mencegah klik di tombol memicu upload file lagi
+        if (e.target.id === 'image-drop-zone' || e.target.closest('#initial-state')) {
+            imageUploadInput.click();
+        }
+    });
+
+    // Paste dari Clipboard
+    document.addEventListener('paste', (e) => {
+        const items = e.clipboardData.items;
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+                handleFile(items[i].getAsFile());
+                break;
+            }
+        }
+    });
+
+    // --- Event Listener untuk Aksi Output ---
     copyBtn.addEventListener('click', () => {
-        if (textOutput.value) {
-            navigator.clipboard.writeText(textOutput.value);
-            showModal('Info', 'Teks berhasil disalin ke clipboard.');
+        if (outputText.value) {
+            navigator.clipboard.writeText(outputText.value)
+                .then(() => showSnackbar("Teks berhasil disalin!"))
+                .catch(() => showSnackbar("Gagal menyalin teks."));
         }
     });
 
-    clearBtn.addEventListener('click', () => {
-        textOutput.value = '';
+    downloadBtn.addEventListener('click', () => {
+        if (outputText.value) {
+            const blob = new Blob([outputText.value], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'hasil-ocr.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showSnackbar("Teks sedang diunduh.");
+        }
     });
-
-    // Initial UI setup
-    document.documentElement.setAttribute('data-theme', 'light');
-    themeToggle.querySelector('.sun-icon').style.display = 'block';
-    themeToggle.querySelector('.moon-icon').style.display = 'none';
-    viewModeBtn.querySelectorAll('svg').forEach(icon => icon.style.display = 'none');
-    viewModeBtn.querySelector('.desktop-icon').style.display = 'block';
 });
