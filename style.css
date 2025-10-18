@@ -1,381 +1,125 @@
-/* Variabel Warna untuk Mode Terang dan Gelap */
-:root {
-    --bg-color: #f8f9fa;
-    --text-color: #212529;
-    --primary-color: #007aff;
-    --secondary-color: #6c757d;
-    --border-color: #dee2e6;
-    --card-bg-color: #ffffff;
-    --header-bg-color: rgba(255, 255, 255, 0.7);
-    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-
-[data-theme="dark"] {
-    --bg-color: #1c1c1e;
-    --text-color: #f2f2f7;
-    --border-color: #3a3a3c;
-    --card-bg-color: #2c2c2e;
-    --header-bg-color: rgba(28, 28, 30, 0.7);
-}
-
-/* Pengaturan Dasar */
+/* Menggunakan font Inter untuk tampilan modern */
 body {
-    font-family: var(--font-family);
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    margin: 0;
-    padding-top: 80px;
-    transition: background-color 0.3s, color 0.3s;
-    overflow-y: scroll;
+    font-family: 'Inter', sans-serif;
 }
 
-/* Header */
-.main-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    height: 60px;
-    background-color: var(--header-bg-color);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--border-color);
-    z-index: 1000;
+/* Variabel Tema untuk Dark (Default) & Light Mode */
+:root {
+    --bg-primary: #000000; /* Hitam pekat untuk dark mode ala Apple */
+    --bg-secondary: #1c1c1e; /* Abu-abu gelap untuk card */
+    --bg-tertiary: #2c2c2e; /* Abu-abu lebih terang untuk input/tombol sekunder */
+    --bg-header: rgba(28, 28, 30, 0.7); /* Header transparan */
+    --text-primary: #ffffff; /* Teks putih */
+    --text-secondary: #8e8e93; /* Teks abu-abu sekunder */
+    --accent-color: #0a84ff; /* Biru aksen khas iOS */
+    --border-color: #3a3a3c; /* Warna border */
+    --scroll-thumb: #48484a;
+    --scroll-track: #1c1c1e;
 }
 
-.header-title {
-    font-size: 1.2rem;
-    font-weight: 600;
+.light-theme {
+    --bg-primary: #f2f2f7; /* Abu-abu sangat terang */
+    --bg-secondary: #ffffff; /* Putih bersih untuk card */
+    --bg-tertiary: #e5e5ea; /* Abu-abu terang untuk input */
+    --bg-header: rgba(242, 242, 247, 0.7);
+    --text-primary: #000000; /* Teks hitam */
+    --text-secondary: #636366; /* Teks abu-abu sekunder */
+    --accent-color: #007aff; /* Biru aksen khas iOS */
+    --border-color: #d1d1d6;
+    --scroll-thumb: #c7c7cc;
+    --scroll-track: #f2f2f7;
 }
 
-.header-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+/* Menerapkan variabel CSS */
+.bg-primary { background-color: var(--bg-primary); }
+.bg-secondary { background-color: var(--bg-secondary); }
+.bg-tertiary { background-color: var(--bg-tertiary); }
+.bg-header { background-color: var(--bg-header); }
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-accent { color: var(--accent-color); }
+.border-custom { border-color: var(--border-color); }
+.focus\:ring-accent:focus { --tw-ring-color: var(--accent-color); }
+
+/* Transisi halus saat ganti tema */
+body, .bg-secondary, .bg-tertiary, button, textarea {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-/* Konten Utama */
-.main-content {
-    display: flex;
-    justify-content: center;
-    padding: 20px;
-}
-
-.container {
-    width: 100%;
-    max-width: 1200px;
-    text-align: center;
-    transition: max-width 0.5s ease-in-out;
-}
-
-.container.view-tablet { max-width: 768px; }
-.container.view-mobile { max-width: 425px; }
-
-h1 {
-    font-size: 3rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.subtitle {
-    font-size: 1.2rem;
-    color: var(--secondary-color);
-    margin-bottom: 2rem;
-}
-
-/* Interface OCR */
-.ocr-interface {
-    display: flex;
-    justify-content: center;
-    align-items: stretch;
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.io-column {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.image-drop-zone, .text-output-zone {
-    flex-grow: 1;
-    border: 2px dashed var(--border-color);
-    border-radius: 12px;
-    background-color: var(--card-bg-color);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    position: relative;
-    min-height: 300px;
+/* Device Preview Styling (diambil dari referensi) */
+#device-preview-container {
+    transition: width 0.5s ease, height 0.5s ease, border-radius 0.5s ease, box-shadow 0.5s ease;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     overflow: hidden;
+    border: 8px solid #333;
+    background-color: var(--bg-secondary);
+    position: relative;
 }
+#content-container { overflow-y: auto; }
+.pc-view { width: 100%; height: 85vh; border-radius: 1rem; }
+.tablet-view { width: 768px; height: 1024px; max-width: 90vw; max-height: 85vh; border-radius: 1.5rem; }
+.mobile-view { width: 375px; height: 667px; max-width: 90vw; max-height: 85vh; border-radius: 2rem; }
 
-.image-drop-zone #placeholder-text { color: var(--secondary-color); }
-#image-preview-container { width: 100%; height: 100%; }
-#image-preview { max-width: 100%; max-height: 100%; object-fit: contain; }
-textarea#text-output {
-    width: 100%;
-    height: 100%;
-    border: none;
-    background: none;
-    resize: none;
-    color: var(--text-color);
-    font-family: var(--font-family);
-    font-size: 1rem;
-    line-height: 1.6;
-}
-textarea#text-output:focus { outline: none; }
-
-.separator-column {
+/* Styling Tombol Aksi */
+.action-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    padding: 0 1rem;
-}
-
-/* Tombol-tombol */
-.button-group {
-    margin-top: 1rem;
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-button {
-    padding: 10px 20px;
-    font-size: 1rem;
-    border: none;
-    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem; /* Rounded corner khas Apple */
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.1s ease;
     cursor: pointer;
-    background-color: var(--primary-color);
+}
+.action-btn:active {
+    transform: scale(0.97);
+}
+.bg-tertiary:hover {
+    background-color: var(--border-color);
+}
+.accent-btn {
+    background-color: var(--accent-color);
     color: white;
-    font-weight: 500;
-    transition: transform 0.2s, background-color 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
+}
+.accent-btn:hover {
+    filter: brightness(1.1);
 }
 
-button:hover { transform: scale(1.05); }
-button.secondary-btn { background-color: var(--secondary-color); }
 
-.extract-btn-main {
-    padding: 15px 25px;
-    font-size: 1.1rem;
-    border-radius: 12px;
-    flex-direction: column;
-    gap: 5px;
+/* Drop Zone Styling */
+#image-drop-zone.drag-over {
+    border-color: var(--accent-color);
+    background-color: var(--bg-tertiary);
 }
 
-.control-btn, .menu-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-color);
-    padding: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--scroll-track); }
+::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 10px; }
 
-button svg { width: 20px; height: 20px; stroke-width: 2; }
-.control-btn svg { width: 24px; height: 24px; }
-
-[data-theme="light"] .moon-icon { display: none; }
-[data-theme="dark"] .sun-icon { display: none; }
-
-/* Tombol Hapus Gambar */
-#clear-image-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 32px;
-    height: 32px;
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
-    border-radius: 50%;
-    border: none;
-    font-size: 20px;
-    line-height: 1;
-    cursor: pointer;
-    z-index: 10;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Animasi Loading */
-.loading-animation {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    z-index: 5;
-}
-.scanner {
-    width: 80%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-    animation: scanning 2s infinite linear;
-    position: absolute;
-}
-@keyframes scanning {
-    0% { top: 0; }
-    100% { top: 100%; }
-}
-
-/* Baris Peringatan */
-.warning-bar {
-    background-color: rgba(255, 193, 7, 0.1);
-    border: 1px solid rgba(255, 193, 7, 0.5);
-    padding: 10px;
-    border-radius: 8px;
-    margin: 0 auto;
-    max-width: 800px;
-}
-
-/* Sidebar */
-.sidebar {
-    height: 100%;
-    width: 0;
-    position: fixed;
-    z-index: 1001;
-    top: 0;
-    left: 0;
-    background-color: var(--card-bg-color);
-    overflow-x: hidden;
-    transition: 0.5s;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-}
-
-.sidebar-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-color);
-}
-.sidebar-header h2 { margin: 0; }
-.sidebar-header .close-btn { font-size: 2rem; text-decoration: none; color: var(--text-color); }
-.sidebar-content { padding: 1rem; }
-.sidebar-content a {
-    padding: 10px 0;
-    text-decoration: none;
-    font-size: 1.1rem;
-    color: var(--text-color);
-    display: block;
-    transition: 0.3s;
-}
-
-/* Gaya untuk bagian API Key */
-.api-key-section { margin-top: 1rem; }
-.api-key-section label { font-weight: 600; font-size: 0.9rem; display: block; }
-.api-key-info {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-top: 5px;
-}
-#api-key-input {
-    width: 100%;
-    padding: 8px;
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-    background-color: var(--bg-color);
-    color: var(--text-color);
-}
-.api-key-info a {
-    flex-shrink: 0;
-    text-decoration: none;
-    color: var(--secondary-color);
-    border: 1px solid var(--secondary-color);
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    font-weight: bold;
-}
-.api-key-desc {
-    font-size: 0.75rem;
-    color: var(--secondary-color);
-    margin-top: 5px;
-}
-
-/* Modal / Pop-up */
-.modal {
-    display: none; 
-    position: fixed;
-    z-index: 2000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.4);
-}
-.modal-content {
-    background-color: var(--card-bg-color);
-    margin: 15% auto;
-    padding: 20px;
-    border: 1px solid var(--border-color);
-    width: 80%;
-    max-width: 500px;
-    border-radius: 10px;
-    text-align: left;
-}
-.close-modal-btn {
-    color: var(--secondary-color);
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-/* Gaya untuk Modal Kamera */
-.camera-modal-content {
-    background-color: var(--card-bg-color);
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid var(--border-color);
-    width: 90%;
-    max-width: 800px;
-    border-radius: 10px;
+/* Snackbar Styling (diambil dari referensi) */
+#snackbar {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #333;
+    color: #fff;
     text-align: center;
-}
-
-#camera-stream {
-    width: 100%;
-    max-height: 60vh;
     border-radius: 8px;
-    background-color: #000;
-    margin-bottom: 1rem;
+    padding: 16px;
+    position: fixed;
+    z-index: 100;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 30px;
+    transition: visibility 0s, opacity 0.5s, bottom 0.5s;
 }
-
-/* Desain Responsif */
-@media screen and (max-width: 768px) {
-    .ocr-interface { flex-direction: column; }
-    .separator-column { margin: 1rem 0; }
-    h1 { font-size: 2rem; }
-    .header-title { display: none; }
+#snackbar.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 50px;
+}
+.light-theme #snackbar {
+    background-color: var(--text-primary);
+    color: var(--bg-primary);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
