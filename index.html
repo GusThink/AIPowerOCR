@@ -69,7 +69,6 @@
         #camera-modal { background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); }
         #camera-stream { transform: scaleX(-1); }
 
-        /* */
         #scan-animation .scan-line {
             width: 100%;
             height: 4px;
@@ -87,7 +86,6 @@
             100% { top: 0; }
         }
 
-        /* */
         #dropdown-menu {
             transition: opacity 0.2s ease, transform 0.2s ease;
         }
@@ -102,7 +100,6 @@
                 <h1 class="text-xl font-bold text-primary">AIPower<span class="text-accent">OCR</span></h1>
             </div>
             
-            -->
             <div class="relative">
                 <button id="menu-btn" class="p-2 rounded-full text-primary bg-secondary hover:bg-tertiary transition duration-300 focus:outline-none" title="Opsi">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
@@ -132,7 +129,6 @@
         <div id="device-preview-container" class="mx-auto main-card border-custom flex flex-col mobile-view">
             <div id="content-container" class="flex-grow p-4 sm:p-6 space-y-6">
 
-                -->
                 <div id="image-input-area" class="relative text-center p-6 bg-secondary rounded-xl border-2 border-dashed border-custom flex flex-col items-center justify-center min-h-[200px] overflow-hidden">
                     <div id="image-placeholder">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-secondary mx-auto mb-4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
@@ -172,7 +168,7 @@
                 </div>
             </div>
 
-            <div id="api-settings-view" class="absolute top-0 left-0 w-full h-full bg-primary z-50">
+            <div id="api-settings-view" class="absolute top-0 left-0 w-full h-full bg-primary z-[55]">
                 <div class="p-4 sm:p-6 h-full flex flex-col">
                     <div class="flex-shrink-0 flex items-center gap-4 mb-4 pb-4 border-b border-custom">
                         <button id="back-from-api-settings-btn" class="p-2 rounded-full hover:bg-tertiary transition-colors" title="Kembali">
@@ -214,6 +210,7 @@
     <canvas id="camera-canvas" class="hidden"></canvas>
 
     <script type="module">
+        // --- Inisialisasi Elemen DOM ---
         const body = document.body;
         const ocrResult = document.getElementById('ocr-result');
         const outputPlaceholder = document.getElementById('output-placeholder');
@@ -222,24 +219,21 @@
         const apiKeyInput = document.getElementById('api-key-input');
         const apiKeyStatus = document.getElementById('api-key-status');
         const apiSettingsView = document.getElementById('api-settings-view');
-        
-        // const scanAnimation = document.getElementById('scan-animation');
-
+        const scanAnimation = document.getElementById('scan-animation');
         const cameraModal = document.getElementById('camera-modal');
         const videoElement = document.getElementById('camera-stream');
         const canvasElement = document.getElementById('camera-canvas');
         const captureBtn = document.getElementById('capture-btn');
         const useCameraBtn = document.getElementById('use-camera-btn');
         const closeCameraBtn = document.getElementById('close-camera-btn');
-        let currentStream = null;
-
-        // const menuBtn = document.getElementById('menu-btn');
+        const menuBtn = document.getElementById('menu-btn');
         const dropdownMenu = document.getElementById('dropdown-menu');
         const menuDeviceToggle = document.getElementById('menu-device-toggle');
         const menuThemeToggle = document.getElementById('menu-theme-toggle');
         const menuApiSettings = document.getElementById('menu-api-settings');
+        let currentStream = null;
 
-
+        // --- Fungsi Notifikasi & Bantuan ---
         let snackbarTimeout;
         function showSnackbar(message, type = 'info') {
             const snackbar = document.getElementById('snackbar');
@@ -255,21 +249,23 @@
             setTimeout(() => { element.classList.remove('btn-active-feedback'); }, 150);
         }
 
-        // menuBtn.addEventListener('click', (e) => {
+        // --- Logika Menu Dropdown ---
+        menuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             dropdownMenu.classList.toggle('hidden');
         });
-
         document.addEventListener('click', () => {
             if (!dropdownMenu.classList.contains('hidden')) {
                 dropdownMenu.classList.add('hidden');
             }
         });
 
+        // --- Logika Kontrol UI (dari Dropdown) ---
         function applyTheme(theme) {
             body.classList.toggle('light-theme', theme === 'light');
-            const themeIconLight = document.querySelector('#menu-theme-toggle svg'); // simplified selector
-            // Logic to swap SVG icons can be added here if needed
+            const primaryBg = getComputedStyle(body).getPropertyValue('--bg-primary').trim();
+            const rgb = primaryBg.match(/\d+/g).join(', ');
+            document.querySelector('header').style.backgroundColor = `rgba(${rgb}, 0.8)`;
         }
         menuThemeToggle.addEventListener('click', () => {
             const newTheme = body.classList.contains('light-theme') ? 'dark' : 'light';
@@ -291,6 +287,11 @@
             applyClickFeedback(menuDeviceToggle);
         });
         
+        menuApiSettings.addEventListener('click', () => {
+            apiSettingsView.classList.add('view-active');
+        });
+
+        // --- Logika Pengaturan API ---
         function loadApiKey() {
             const savedKey = localStorage.getItem('user_google_api_key');
             if (savedKey) {
@@ -299,9 +300,6 @@
                 apiKeyStatus.style.color = 'var(--text-accent)';
             }
         }
-        menuApiSettings.addEventListener('click', () => {
-            apiSettingsView.classList.add('view-active');
-        });
         document.getElementById('back-from-api-settings-btn').addEventListener('click', () => apiSettingsView.classList.remove('view-active'));
         document.getElementById('save-api-key-btn').addEventListener('click', () => {
             const key = apiKeyInput.value.trim();
@@ -313,10 +311,10 @@
             } else { showSnackbar('Format Kunci API tidak valid.', 'error'); }
         });
 
+        // --- Logika Status UI & Font ---
         function setUIState(state) {
             const isTextArabic = (text) => /[\u0600-\u06FF]/.test(text);
-            
-            // scanAnimation.classList.toggle('hidden', state !== 'loading');
+            scanAnimation.classList.toggle('hidden', state !== 'loading');
             imagePlaceholder.classList.toggle('hidden', state === 'loading');
             copyTextBtn.disabled = (state !== 'result');
             
@@ -324,11 +322,12 @@
                 const isArabic = isTextArabic(ocrResult.textContent);
                 ocrResult.style.direction = isArabic ? 'rtl' : 'ltr';
                 ocrResult.style.textAlign = isArabic ? 'right' : 'left';
-                // ocrResult.classList.toggle('font-amiri', isArabic);
+                ocrResult.classList.toggle('font-amiri', isArabic);
                 ocrResult.classList.toggle('font-sans', !isArabic);
             }
         }
         
+        // --- Logika Kamera ---
         async function openCamera() {
             if (!('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices)) {
                 showSnackbar('Kamera tidak didukung di browser ini.', 'error');
@@ -344,13 +343,11 @@
                 closeCamera();
             }
         }
-
         function closeCamera() {
             if (currentStream) { currentStream.getTracks().forEach(track => track.stop()); }
             cameraModal.classList.add('hidden');
             videoElement.srcObject = null;
         }
-
         captureBtn.addEventListener('click', () => {
             canvasElement.width = videoElement.videoWidth;
             canvasElement.height = videoElement.videoHeight;
@@ -366,9 +363,8 @@
             }, 'image/jpeg');
             closeCamera();
         });
-        useCameraBtn.addEventListener('click', openCamera);
-        closeCameraBtn.addEventListener('click', closeCamera);
 
+        // --- Logika Inti OCR ---
         async function processImageFile(file) {
             if (!file) return;
             const apiKey = localStorage.getItem('user_google_api_key');
@@ -427,11 +423,13 @@
             }
         }
         
+        // --- Event Listeners untuk Input ---
         const uploadImageBtn = document.getElementById('upload-image-btn');
         const imageUploadInput = document.getElementById('image-upload-input');
         uploadImageBtn.addEventListener('click', () => imageUploadInput.click());
         imageUploadInput.addEventListener('change', (e) => processImageFile(e.target.files[0]));
-
+        useCameraBtn.addEventListener('click', openCamera);
+        closeCameraBtn.addEventListener('click', closeCamera);
         document.addEventListener('paste', (event) => {
             const items = (event.clipboardData || window.clipboardData).items;
             let imageFile = null;
@@ -440,7 +438,6 @@
             }
             if (imageFile) { event.preventDefault(); processImageFile(imageFile); }
         });
-        
         copyTextBtn.addEventListener('click', () => {
             if (ocrResult.textContent) {
                 navigator.clipboard.writeText(ocrResult.textContent)
@@ -450,6 +447,7 @@
             }
         });
 
+        // --- Inisialisasi Aplikasi ---
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             applyTheme(savedTheme);
