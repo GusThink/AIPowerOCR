@@ -40,7 +40,7 @@
         #device-preview-container {
             transition: width 0.5s ease, height 0.5s ease, border-radius 0.5s ease, box-shadow 0.5s ease;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            overflow: hidden; border: 8px solid #333; background-color: var(--bg-primary);
+            overflow: hidden; border: 8px solid #333; background-color: var(--bg-primary); position: relative;
         }
         #content-container { overflow-y: auto; }
         .pc-view { width: 100%; height: 85vh; border-radius: 1rem; }
@@ -66,13 +66,30 @@
             transform: scale(0.98); filter: brightness(0.9); transition: transform 0.1s ease, filter 0.1s ease;
         }
         
+        #camera-modal { background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); }
+        #camera-stream { transform: scaleX(-1); }
+
         /* */
-        #camera-modal {
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
+        #scan-animation .scan-line {
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+            box-shadow: 0 0 15px var(--accent-color);
+            border-radius: 5px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: scan 2s infinite ease-in-out;
         }
-        #camera-stream {
-            transform: scaleX(-1); /* Cerminkan tampilan video agar seperti cermin */
+        @keyframes scan {
+            0% { top: 0; }
+            50% { top: 100%; }
+            100% { top: 0; }
+        }
+
+        /* */
+        #dropdown-menu {
+            transition: opacity 0.2s ease, transform 0.2s ease;
         }
     </style>
 </head>
@@ -84,19 +101,29 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-accent"><path d="M12 1a3 3 0 0 0-3 3v2h6V4a3 3 0 0 0-3-3z"></path><path d="M12 8H3a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-9"></path><path d="M9 12v4"></path><path d="M15 12v4"></path></svg>
                 <h1 class="text-xl font-bold text-primary">AIPower<span class="text-accent">OCR</span></h1>
             </div>
-            <div class="flex items-center justify-end gap-2">
-                <button id="device-toggle" class="p-2 rounded-full text-primary bg-secondary hover:bg-tertiary transition duration-300 focus:outline-none" title="Ganti Tampilan Perangkat">
-                    <svg id="icon-mobile" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                    <svg id="icon-tablet" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                    <svg id="icon-pc" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            
+            -->
+            <div class="relative">
+                <button id="menu-btn" class="p-2 rounded-full text-primary bg-secondary hover:bg-tertiary transition duration-300 focus:outline-none" title="Opsi">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
                 </button>
-                <button id="theme-toggle" class="p-2 rounded-full text-primary bg-secondary hover:bg-tertiary transition duration-300 focus:outline-none" title="Ganti Mode Terang/Gelap">
-                    <svg id="theme-icon-light" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                    <svg id="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                </button>
-                 <button id="api-settings-btn" class="p-2 rounded-full text-primary bg-secondary hover:bg-tertiary transition duration-300 focus:outline-none" title="Pengaturan API">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 21l-3.5-3.5C9.536 16.536 9 14.88 9 13.172V11c0-1.657 1.343-3 3-3h1c1.657 0 3 1.343 3 3v2.172c0 1.707-.536 3.364-1.5 4.328L14 21z"></path><path d="M12 11V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><circle cx="16" cy="5" r="1"></circle></svg>
-                </button>
+                <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-56 bg-secondary rounded-lg shadow-lg border border-custom z-50 origin-top-right">
+                    <div class="py-1">
+                        <button id="menu-device-toggle" class="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-primary hover:bg-tertiary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                            Ganti Tampilan
+                        </button>
+                        <button id="menu-theme-toggle" class="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-primary hover:bg-tertiary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                            Ganti Tema
+                        </button>
+                        <div class="border-t border-custom my-1"></div>
+                        <button id="menu-api-settings" class="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-primary hover:bg-tertiary">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 21l-3.5-3.5C9.536 16.536 9 14.88 9 13.172V11c0-1.657 1.343-3 3-3h1c1.657 0 3 1.343 3 3v2.172c0 1.707-.536 3.364-1.5 4.328L14 21z"></path><path d="M12 11V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><circle cx="16" cy="5" r="1"></circle></svg>
+                           Pengaturan API
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -104,15 +131,17 @@
     <main class="p-4 sm:p-6 md:p-10 flex justify-center items-start min-h-[90vh]">
         <div id="device-preview-container" class="mx-auto main-card border-custom flex flex-col mobile-view">
             <div id="content-container" class="flex-grow p-4 sm:p-6 space-y-6">
-                <div id="image-input-area" class="text-center p-6 bg-secondary rounded-xl border-2 border-dashed border-custom flex flex-col items-center justify-center min-h-[200px]">
+
+                -->
+                <div id="image-input-area" class="relative text-center p-6 bg-secondary rounded-xl border-2 border-dashed border-custom flex flex-col items-center justify-center min-h-[200px] overflow-hidden">
                     <div id="image-placeholder">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-secondary mx-auto mb-4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                         <p class="text-primary font-semibold">Letakkan Gambar di Sini</p>
                         <p class="text-secondary text-sm mt-1">Tempel (Ctrl+V), unggah, atau gunakan kamera.</p>
                     </div>
-                    <div id="loading-spinner" class="hidden">
-                        <svg class="animate-spin h-8 w-8 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        <p class="text-accent text-sm mt-2 font-semibold">Mengekstrak Teks...</p>
+                    <div id="scan-animation" class="hidden w-full h-full flex flex-col items-center justify-center">
+                        <div class="scan-line"></div>
+                        <p class="text-accent text-sm font-semibold z-10">Menganalisis Gambar...</p>
                     </div>
                 </div>
 
@@ -127,6 +156,7 @@
                     </button>
                 </div>
                 <input type="file" id="image-upload-input" class="hidden" accept="image/*">
+
                 <div class="bg-secondary rounded-xl shadow-lg border border-custom overflow-hidden">
                     <div class="p-4 flex justify-between items-center border-b border-custom">
                          <h2 class="text-lg font-bold text-accent">Hasil Ekstraksi</h2>
@@ -137,7 +167,7 @@
                     </div>
                     <div id="output-container" class="p-4 min-h-[150px]">
                         <p id="output-placeholder" class="text-secondary text-center p-10">Hasil teks akan muncul di sini.</p>
-                        <pre id="ocr-result" class="text-primary whitespace-pre-wrap text-sm font-amiri" style="display: none; direction: rtl; text-align: right;"></pre>
+                        <pre id="ocr-result" class="text-primary whitespace-pre-wrap text-sm" style="display: none;"></pre>
                     </div>
                 </div>
             </div>
@@ -151,7 +181,7 @@
                         <h2 class="text-lg font-bold text-accent">Pengaturan Kunci API</h2>
                     </div>
                     <div id="api-settings-content" class="flex-grow text-secondary text-sm space-y-6">
-                        <p>Kunci API Anda akan diprioritaskan untuk mengakses model AI. Kunci ini disimpan dengan aman di browser Anda dan tidak akan pernah dibagikan.</p>
+                        <p>Kunci API Anda disimpan dengan aman di browser Anda.</p>
                          <div>
                             <label for="api-key-input" class="block mb-2 text-sm font-medium text-primary">Kunci API Google AI</label>
                             <div class="flex items-end gap-2">
@@ -169,8 +199,7 @@
 
     <div id="snackbar"></div>
 
-    -->
-    <div id="camera-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <div id="camera-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 hidden">
         <div class="bg-secondary rounded-xl shadow-lg border border-custom w-full max-w-lg overflow-hidden">
             <video id="camera-stream" class="w-full h-auto" autoplay playsinline></video>
             <div class="p-4 flex flex-col gap-3">
@@ -184,19 +213,18 @@
     </div>
     <canvas id="camera-canvas" class="hidden"></canvas>
 
-
     <script type="module">
         const body = document.body;
         const ocrResult = document.getElementById('ocr-result');
         const outputPlaceholder = document.getElementById('output-placeholder');
         const copyTextBtn = document.getElementById('copy-text-btn');
         const imagePlaceholder = document.getElementById('image-placeholder');
-        const loadingSpinner = document.getElementById('loading-spinner');
         const apiKeyInput = document.getElementById('api-key-input');
         const apiKeyStatus = document.getElementById('api-key-status');
         const apiSettingsView = document.getElementById('api-settings-view');
+        
+        // const scanAnimation = document.getElementById('scan-animation');
 
-        // --- PERBAIKAN KAMERA: 2. Inisialisasi elemen-elemen modal kamera ---
         const cameraModal = document.getElementById('camera-modal');
         const videoElement = document.getElementById('camera-stream');
         const canvasElement = document.getElementById('camera-canvas');
@@ -204,6 +232,13 @@
         const useCameraBtn = document.getElementById('use-camera-btn');
         const closeCameraBtn = document.getElementById('close-camera-btn');
         let currentStream = null;
+
+        // const menuBtn = document.getElementById('menu-btn');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+        const menuDeviceToggle = document.getElementById('menu-device-toggle');
+        const menuThemeToggle = document.getElementById('menu-theme-toggle');
+        const menuApiSettings = document.getElementById('menu-api-settings');
+
 
         let snackbarTimeout;
         function showSnackbar(message, type = 'info') {
@@ -220,40 +255,40 @@
             setTimeout(() => { element.classList.remove('btn-active-feedback'); }, 150);
         }
 
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        const themeIconLight = document.getElementById('theme-icon-light');
-        const themeIconDark = document.getElementById('theme-icon-dark');
+        // menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', () => {
+            if (!dropdownMenu.classList.contains('hidden')) {
+                dropdownMenu.classList.add('hidden');
+            }
+        });
+
         function applyTheme(theme) {
             body.classList.toggle('light-theme', theme === 'light');
-            themeIconLight.classList.toggle('hidden', theme !== 'light');
-            themeIconDark.classList.toggle('hidden', theme === 'light');
-            const primaryBg = getComputedStyle(body).getPropertyValue('--bg-primary').trim();
-            const rgb = primaryBg.match(/\d+/g).join(', ');
-            document.querySelector('header').style.backgroundColor = `rgba(${rgb}, 0.8)`;
+            const themeIconLight = document.querySelector('#menu-theme-toggle svg'); // simplified selector
+            // Logic to swap SVG icons can be added here if needed
         }
-        themeToggleBtn.addEventListener('click', () => {
+        menuThemeToggle.addEventListener('click', () => {
             const newTheme = body.classList.contains('light-theme') ? 'dark' : 'light';
             localStorage.setItem('theme', newTheme);
             applyTheme(newTheme);
-            applyClickFeedback(themeToggleBtn);
+            applyClickFeedback(menuThemeToggle);
         });
         
-        const deviceToggleBtn = document.getElementById('device-toggle');
-        const deviceIcons = {'mobile-view': document.getElementById('icon-mobile'), 'tablet-view': document.getElementById('icon-tablet'), 'pc-view': document.getElementById('icon-pc')};
+        let currentDeviceIndex = 0;
         const deviceStates = ['mobile-view', 'tablet-view', 'pc-view'];
-        let currentDeviceIndex;
         function applyDeviceView(index) {
             const devicePreview = document.getElementById('device-preview-container');
             deviceStates.forEach(state => devicePreview.classList.remove(state));
-            Object.values(deviceIcons).forEach(icon => icon.classList.add('hidden'));
-            const newDeviceState = deviceStates[index];
-            devicePreview.classList.add(newDeviceState);
-            if (deviceIcons[newDeviceState]) deviceIcons[newDeviceState].classList.remove('hidden');
+            devicePreview.classList.add(deviceStates[index]);
             currentDeviceIndex = index;
         }
-        deviceToggleBtn.addEventListener('click', () => {
+        menuDeviceToggle.addEventListener('click', () => {
             applyDeviceView((currentDeviceIndex + 1) % deviceStates.length);
-            applyClickFeedback(deviceToggleBtn);
+            applyClickFeedback(menuDeviceToggle);
         });
         
         function loadApiKey() {
@@ -264,7 +299,9 @@
                 apiKeyStatus.style.color = 'var(--text-accent)';
             }
         }
-        document.getElementById('api-settings-btn').addEventListener('click', () => apiSettingsView.classList.add('view-active'));
+        menuApiSettings.addEventListener('click', () => {
+            apiSettingsView.classList.add('view-active');
+        });
         document.getElementById('back-from-api-settings-btn').addEventListener('click', () => apiSettingsView.classList.remove('view-active'));
         document.getElementById('save-api-key-btn').addEventListener('click', () => {
             const key = apiKeyInput.value.trim();
@@ -273,27 +310,25 @@
                 showSnackbar('Kunci API berhasil disimpan.', 'success');
                 loadApiKey();
                 setTimeout(() => apiSettingsView.classList.remove('view-active'), 500);
-            } else {
-                showSnackbar('Format Kunci API tidak valid.', 'error');
-            }
+            } else { showSnackbar('Format Kunci API tidak valid.', 'error'); }
         });
 
         function setUIState(state) {
             const isTextArabic = (text) => /[\u0600-\u06FF]/.test(text);
-            loadingSpinner.classList.toggle('hidden', state !== 'loading');
+            
+            // scanAnimation.classList.toggle('hidden', state !== 'loading');
             imagePlaceholder.classList.toggle('hidden', state === 'loading');
-            copyTextBtn.disabled = (state === 'idle' || state === 'loading');
+            copyTextBtn.disabled = (state !== 'result');
             
             if (state === 'result' && ocrResult.textContent) {
                 const isArabic = isTextArabic(ocrResult.textContent);
                 ocrResult.style.direction = isArabic ? 'rtl' : 'ltr';
                 ocrResult.style.textAlign = isArabic ? 'right' : 'left';
-                ocrResult.classList.toggle('font-amiri', isArabic);
+                // ocrResult.classList.toggle('font-amiri', isArabic);
                 ocrResult.classList.toggle('font-sans', !isArabic);
             }
         }
         
-        // --- PERBAIKAN KAMERA: 3. Logika baru untuk membuka, menutup, dan mengambil gambar ---
         async function openCamera() {
             if (!('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices)) {
                 showSnackbar('Kamera tidak didukung di browser ini.', 'error');
@@ -305,16 +340,13 @@
                 currentStream = await navigator.mediaDevices.getUserMedia(constraints);
                 videoElement.srcObject = currentStream;
             } catch (err) {
-                console.error("Camera access error:", err);
                 showSnackbar('Gagal mengakses kamera. Pastikan Anda memberikan izin.', 'error');
                 closeCamera();
             }
         }
 
         function closeCamera() {
-            if (currentStream) {
-                currentStream.getTracks().forEach(track => track.stop());
-            }
+            if (currentStream) { currentStream.getTracks().forEach(track => track.stop()); }
             cameraModal.classList.add('hidden');
             videoElement.srcObject = null;
         }
@@ -323,11 +355,9 @@
             canvasElement.width = videoElement.videoWidth;
             canvasElement.height = videoElement.videoHeight;
             const context = canvasElement.getContext('2d');
-            // Cerminkan canvas secara horizontal agar gambar tidak terbalik
             context.translate(canvasElement.width, 0);
             context.scale(-1, 1);
             context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-
             canvasElement.toBlob(blob => {
                 if (blob) {
                     const imageFile = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
@@ -336,7 +366,6 @@
             }, 'image/jpeg');
             closeCamera();
         });
-
         useCameraBtn.addEventListener('click', openCamera);
         closeCameraBtn.addEventListener('click', closeCamera);
 
@@ -344,8 +373,8 @@
             if (!file) return;
             const apiKey = localStorage.getItem('user_google_api_key');
             if (!apiKey) {
-                showSnackbar('Kunci API belum diatur. Silakan atur di menu Pengaturan.', 'error');
-                apiSettingsView.classList.add('view-active');
+                showSnackbar('Kunci API belum diatur.', 'error');
+                menuApiSettings.click();
                 return;
             }
             setUIState('loading');
