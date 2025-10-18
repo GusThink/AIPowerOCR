@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AIPowerOCR: Ekstrak Teks dari Gambar</title>
-    <script src="https://cdn/tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
         
@@ -12,16 +12,14 @@
         .font-amiri { font-family: 'Amiri', serif; }
 
         :root {
-            /* */
-            --bg-primary-rgb: 15, 23, 42; /* slate-900 */
+            --bg-primary-rgb: 15, 23, 42;
             --bg-primary: #0f172a; --bg-secondary: #1e293b; --bg-tertiary: #334155;
             --text-primary: #f1f5f9; --text-secondary: #94a3b8; --accent-color: #22d3ee;
             --border-color: #475569; --btn-accent-bg: linear-gradient(to right, #22d3ee, #0ea5e9);
             --scroll-thumb: #475569; --scroll-track: #1e293b;
         }
         .light-theme {
-            /* */
-            --bg-primary-rgb: 241, 245, 249; /* slate-100 */
+            --bg-primary-rgb: 241, 245, 249;
             --bg-primary: #f1f5f9; --bg-secondary: #ffffff; --bg-tertiary: #f8fafc;
             --text-primary: #0f172a; --text-secondary: #475569; --accent-color: #0891b2;
             --border-color: #e2e8f0; --btn-accent-bg: linear-gradient(to right, #06b6d4, #0284c7);
@@ -64,8 +62,7 @@
             transition: transform 0.3s ease-in-out; transform: translateX(100%);
         }
         #api-settings-view.view-active { transform: translateX(0); }
-        #api-settings-content { overflow-y: auto; }
-
+        
         .btn-active-feedback {
             transform: scale(0.98); filter: brightness(0.9); transition: transform 0.1s ease, filter 0.1s ease;
         }
@@ -94,23 +91,20 @@
             transition: opacity 0.2s ease, transform 0.2s ease;
         }
 
-        /* */
         .glass-menubar {
             background-color: rgba(var(--bg-primary-rgb), 0.7);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px); /* Prefiks untuk kompatibilitas Safari */
+            -webkit-backdrop-filter: blur(12px);
         }
     </style>
 </head>
 <body class="bg-primary text-primary">
 
     <header class="glass-menubar sticky top-0 z-50 py-2 px-4 sm:px-6 md:px-8 border-b border-custom">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
-            -->
+        <div class="max-w-7xl mx-auto grid grid-cols-3 items-center">
             <div class="w-10"></div> 
 
-            <div class="flex items-center gap-2">
-                -->
+            <div class="flex items-center gap-2 justify-self-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-accent">
                     <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
                     <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
@@ -121,7 +115,7 @@
                 <h1 class="text-xl font-bold text-primary">AIPower<span class="text-accent">OCR</span></h1>
             </div>
             
-            <div class="relative">
+            <div class="relative justify-self-end">
                 <button id="menu-btn" class="p-2 rounded-full text-primary bg-tertiary/50 hover:bg-tertiary transition duration-300 focus:outline-none" title="Opsi">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
                 </button>
@@ -151,7 +145,7 @@
             <div id="content-container" class="flex-grow p-4 sm:p-6 space-y-6">
 
                 <div id="image-input-area" class="relative text-center p-6 bg-secondary rounded-xl border-2 border-dashed border-custom flex flex-col items-center justify-center min-h-[200px] overflow-hidden">
-                    <div id="image-placeholder">
+                    <div id="image-placeholder" class="flex flex-col items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-secondary mx-auto mb-4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                         <p class="text-primary font-semibold">Letakkan Gambar di Sini</p>
                         <p class="text-secondary text-sm mt-1">Tempel (Ctrl+V), unggah, atau gunakan kamera.</p>
@@ -254,7 +248,7 @@
         let currentStream = null;
 
         let snackbarTimeout;
-        function showSnackbar(message, type = 'info') {
+        function showSnackbar(message) {
             const snackbar = document.getElementById('snackbar');
             clearTimeout(snackbarTimeout);
             snackbar.textContent = message;
@@ -318,10 +312,10 @@
             const key = apiKeyInput.value.trim();
             if (key && key.startsWith('AIzaSy')) {
                 localStorage.setItem('user_google_api_key', key);
-                showSnackbar('Kunci API berhasil disimpan.', 'success');
+                showSnackbar('Kunci API berhasil disimpan.');
                 loadApiKey();
                 setTimeout(() => apiSettingsView.classList.remove('view-active'), 500);
-            } else { showSnackbar('Format Kunci API tidak valid.', 'error'); }
+            } else { showSnackbar('Format Kunci API tidak valid.'); }
         });
 
         function setUIState(state) {
@@ -341,7 +335,7 @@
         
         async function openCamera() {
             if (!('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices)) {
-                showSnackbar('Kamera tidak didukung di browser ini.', 'error');
+                showSnackbar('Kamera tidak didukung di browser ini.');
                 return;
             }
             cameraModal.classList.remove('hidden');
@@ -350,7 +344,7 @@
                 currentStream = await navigator.mediaDevices.getUserMedia(constraints);
                 videoElement.srcObject = currentStream;
             } catch (err) {
-                showSnackbar('Gagal mengakses kamera. Pastikan Anda memberikan izin.', 'error');
+                showSnackbar('Gagal mengakses kamera. Pastikan Anda memberikan izin.');
                 closeCamera();
             }
         }
@@ -379,7 +373,7 @@
             if (!file) return;
             const apiKey = localStorage.getItem('user_google_api_key');
             if (!apiKey) {
-                showSnackbar('Kunci API belum diatur.', 'error');
+                showSnackbar('Kunci API belum diatur.');
                 menuApiSettings.click();
                 return;
             }
@@ -418,7 +412,7 @@
                     ocrResult.textContent = extractedText;
                     ocrResult.style.display = 'block';
                     outputPlaceholder.style.display = 'none';
-                    showSnackbar('Teks berhasil diekstrak!', 'success');
+                    showSnackbar('Teks berhasil diekstrak!');
                     setUIState('result');
                 } else {
                     outputPlaceholder.textContent = 'Tidak ada teks yang terdeteksi pada gambar.';
@@ -428,7 +422,7 @@
             } catch (error) {
                 console.error("OCR Error:", error);
                 outputPlaceholder.textContent = `Gagal mengekstrak teks: ${error.message}`;
-                showSnackbar(`Terjadi kesalahan: ${error.message}`, 'error');
+                showSnackbar(`Terjadi kesalahan: ${error.message}`);
                 setUIState('idle');
             }
         }
@@ -450,8 +444,8 @@
         copyTextBtn.addEventListener('click', () => {
             if (ocrResult.textContent) {
                 navigator.clipboard.writeText(ocrResult.textContent)
-                    .then(() => showSnackbar('Teks berhasil disalin!', 'success'))
-                    .catch(() => showSnackbar('Gagal menyalin teks.', 'error'));
+                    .then(() => showSnackbar('Teks berhasil disalin!'))
+                    .catch(() => showSnackbar('Gagal menyalin teks.'));
                 applyClickFeedback(copyTextBtn);
             }
         });
