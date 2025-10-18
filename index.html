@@ -6,11 +6,17 @@
     <title>AIPowerOCR: Ekstrak Teks dari Gambar</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Mengimpor font Inter untuk tampilan modern dan bersih */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        /* */
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
         
+        /* */
         body {
             font-family: 'Inter', sans-serif;
+        }
+
+        /* */
+        .font-amiri {
+            font-family: 'Amiri', serif;
         }
 
         /* Variabel Tema untuk Dark (Default) & Light Mode */
@@ -49,17 +55,14 @@
         .text-accent { color: var(--text-accent); }
         .border-custom { border-color: var(--border-color); }
         
-        /* Transisi halus untuk semua elemen */
         body, .main-card, button, textarea {
             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
 
-        /* Custom scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--scroll-track); }
         ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 10px; }
 
-        /* Styling Inti Pratinjau Perangkat */
         #device-preview-container {
             transition: width 0.5s ease, height 0.5s ease, border-radius 0.5s ease, box-shadow 0.5s ease;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -72,7 +75,6 @@
         .tablet-view { width: 768px; height: 1024px; max-width: 100%; max-height: 85vh; border-radius: 1.5rem; }
         .mobile-view { width: 375px; height: 667px; max-width: 100%; max-height: 85vh; border-radius: 2rem; }
 
-        /* Styling Snackbar (Notifikasi) */
         #snackbar {
             visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
             text-align: center; border-radius: 8px; padding: 16px; position: fixed;
@@ -82,14 +84,12 @@
         #snackbar.show { visibility: visible; opacity: 1; bottom: 50px; }
         .light-theme #snackbar { background-color: var(--text-primary); color: var(--bg-primary); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
 
-        /* Styling Lapisan Detail (untuk Pengaturan API) */
         #api-settings-view {
             transition: transform 0.3s ease-in-out; transform: translateX(100%);
         }
         #api-settings-view.view-active { transform: translateX(0); }
         #api-settings-content { overflow-y: auto; }
 
-        /* Efek klik pada tombol */
         .btn-active-feedback {
             transform: scale(0.98); filter: brightness(0.9); transition: transform 0.1s ease, filter 0.1s ease;
         }
@@ -103,7 +103,6 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-accent"><path d="M12 1a3 3 0 0 0-3 3v2h6V4a3 3 0 0 0-3-3z"></path><path d="M12 8H3a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-9"></path><path d="M9 12v4"></path><path d="M15 12v4"></path></svg>
                 <h1 class="text-xl font-bold text-primary">AIPower<span class="text-accent">OCR</span></h1>
             </div>
-
             <div class="flex items-center justify-end gap-2">
                 <button id="device-toggle" class="p-2 rounded-full text-primary bg-secondary hover:bg-tertiary transition duration-300 focus:outline-none" title="Ganti Tampilan Perangkat">
                     <svg id="icon-mobile" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
@@ -160,7 +159,7 @@
                     </div>
                     <div id="output-container" class="p-4 min-h-[150px]">
                         <p id="output-placeholder" class="text-secondary text-center p-10">Hasil teks akan muncul di sini.</p>
-                        <pre id="ocr-result" class="text-primary whitespace-pre-wrap text-sm" style="display: none;"></pre>
+                        <pre id="ocr-result" class="text-primary whitespace-pre-wrap text-sm font-amiri" style="display: none; direction: rtl; text-align: right;"></pre>
                     </div>
                 </div>
 
@@ -195,17 +194,14 @@
     <div id="snackbar"></div>
 
     <script type="module">
-        // --- Inisialisasi Elemen DOM ---
         const body = document.body;
         const devicePreview = document.getElementById('device-preview-container');
-        const imageInputArea = document.getElementById('image-input-area');
         const imagePlaceholder = document.getElementById('image-placeholder');
         const loadingSpinner = document.getElementById('loading-spinner');
         const ocrResult = document.getElementById('ocr-result');
         const outputPlaceholder = document.getElementById('output-placeholder');
         const copyTextBtn = document.getElementById('copy-text-btn');
 
-        // --- Fungsi Notifikasi (Snackbar) ---
         let snackbarTimeout;
         function showSnackbar(message, type = 'info') {
             const snackbar = document.getElementById('snackbar');
@@ -215,14 +211,12 @@
             snackbarTimeout = setTimeout(() => { snackbar.className = snackbar.className.replace('show', ''); }, 3000);
         }
 
-        // --- Fungsi Bantuan ---
         function applyClickFeedback(element) {
             if(!element) return;
             element.classList.add('btn-active-feedback');
             setTimeout(() => { element.classList.remove('btn-active-feedback'); }, 150);
         }
 
-        // --- Manajemen Tema (Light/Dark Mode) ---
         const themeToggleBtn = document.getElementById('theme-toggle');
         const themeIconLight = document.getElementById('theme-icon-light');
         const themeIconDark = document.getElementById('theme-icon-dark');
@@ -236,7 +230,6 @@
                 themeIconLight.classList.add('hidden');
                 themeIconDark.classList.remove('hidden');
             }
-            // Mengambil nilai warna dari CSS Variable untuk rgba
             const primaryBg = getComputedStyle(body).getPropertyValue('--bg-primary').trim();
             const rgb = primaryBg.match(/\d+/g).join(', ');
             document.querySelector('header').style.backgroundColor = `rgba(${rgb}, 0.8)`;
@@ -248,7 +241,6 @@
             applyClickFeedback(themeToggleBtn);
         });
         
-        // --- Manajemen Tampilan Perangkat ---
         const deviceToggleBtn = document.getElementById('device-toggle');
         const deviceIcons = {'mobile-view': document.getElementById('icon-mobile'), 'tablet-view': document.getElementById('icon-tablet'), 'pc-view': document.getElementById('icon-pc')};
         const deviceStates = ['mobile-view', 'tablet-view', 'pc-view'];
@@ -266,7 +258,6 @@
             applyClickFeedback(deviceToggleBtn);
         });
         
-        // --- Manajemen Pengaturan API ---
         const apiSettingsView = document.getElementById('api-settings-view');
         const apiKeyInput = document.getElementById('api-key-input');
         const apiKeyStatus = document.getElementById('api-key-status');
@@ -294,16 +285,32 @@
             }
         });
 
-        // --- Logika Inti OCR ---
         function setUIState(state) {
+            const isTextArabic = (text) => /[\u0600-\u06FF]/.test(text);
+
             if (state === 'loading') {
                 imagePlaceholder.classList.add('hidden');
                 loadingSpinner.classList.remove('hidden');
                 copyTextBtn.disabled = true;
-            } else { // 'idle' or 'result'
+            } else { 
                 imagePlaceholder.classList.remove('hidden');
                 loadingSpinner.classList.add('hidden');
                 copyTextBtn.disabled = (state === 'idle');
+                
+                // PERUBAHAN FONT: 5. Logika untuk menyesuaikan styling output berdasarkan konten
+                if (state === 'result' && ocrResult.textContent) {
+                    if (isTextArabic(ocrResult.textContent)) {
+                        ocrResult.style.direction = 'rtl';
+                        ocrResult.style.textAlign = 'right';
+                        ocrResult.classList.add('font-amiri'); // Gunakan font Arab
+                        ocrResult.classList.remove('font-sans'); // Hapus font default jika ada
+                    } else {
+                        ocrResult.style.direction = 'ltr';
+                        ocrResult.style.textAlign = 'left';
+                        ocrResult.classList.remove('font-amiri'); // Hapus font Arab
+                        ocrResult.classList.add('font-sans'); // Gunakan font default
+                    }
+                }
             }
         }
 
@@ -323,16 +330,16 @@
             outputPlaceholder.textContent = 'Memproses gambar...';
 
             try {
-                // 1. Konversi file gambar ke Base64
                 const base64Data = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
                     reader.readAsDataURL(file);
                     reader.onload = () => resolve(reader.result.split(',')[1]);
                     reader.onerror = error => reject(error);
                 });
-
-                // 2. Siapkan payload untuk Gemini API
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                
+                // PERUBAHAN API URL: Menggunakan endpoint model Flash versi terbaru sesuai permintaan
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                
                 const payload = {
                     contents: [{
                         parts: [
@@ -342,7 +349,6 @@
                     }]
                 };
 
-                // 3. Panggil API
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -357,13 +363,12 @@
                 const result = await response.json();
                 const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
-                // 4. Tampilkan hasil
                 if (extractedText) {
                     ocrResult.textContent = extractedText;
                     ocrResult.style.display = 'block';
                     outputPlaceholder.style.display = 'none';
                     showSnackbar('Teks berhasil diekstrak!', 'success');
-                    setUIState('result');
+                    setUIState('result'); // Panggil setUIState setelah ada hasil
                 } else {
                     outputPlaceholder.textContent = 'Tidak ada teks yang terdeteksi pada gambar.';
                     showSnackbar('Tidak ada teks yang ditemukan.');
@@ -378,7 +383,6 @@
             }
         }
         
-        // --- Event Listeners untuk Input ---
         const uploadImageBtn = document.getElementById('upload-image-btn');
         const useCameraBtn = document.getElementById('use-camera-btn');
         const imageUploadInput = document.getElementById('image-upload-input');
@@ -390,7 +394,6 @@
         imageUploadInput.addEventListener('change', (e) => processImageFile(e.target.files[0]));
         cameraInput.addEventListener('change', (e) => processImageFile(e.target.files[0]));
 
-        // Event listener untuk paste dari clipboard
         document.addEventListener('paste', (event) => {
             const items = (event.clipboardData || window.clipboardData).items;
             let imageFile = null;
@@ -406,7 +409,6 @@
             }
         });
         
-        // Event listener untuk tombol Salin Teks
         copyTextBtn.addEventListener('click', () => {
             if (ocrResult.textContent) {
                 navigator.clipboard.writeText(ocrResult.textContent)
@@ -416,19 +418,11 @@
             }
         });
 
-        // --- Inisialisasi Saat Halaman Dimuat ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Set tema awal berdasarkan preferensi pengguna atau sistem
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             applyTheme(savedTheme);
-
-            // Set tampilan perangkat awal
-            applyDeviceView(0); // Default ke mobile view
-            
-            // Muat Kunci API yang tersimpan
+            applyDeviceView(0); 
             loadApiKey();
-            
-            // Set UI ke state awal
             setUIState('idle');
         });
     </script>
