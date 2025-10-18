@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AIPowerOCR: Ekstrak Teks dari Gambar</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn/tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
         
@@ -12,12 +12,16 @@
         .font-amiri { font-family: 'Amiri', serif; }
 
         :root {
+            /* */
+            --bg-primary-rgb: 15, 23, 42; /* slate-900 */
             --bg-primary: #0f172a; --bg-secondary: #1e293b; --bg-tertiary: #334155;
             --text-primary: #f1f5f9; --text-secondary: #94a3b8; --accent-color: #22d3ee;
             --border-color: #475569; --btn-accent-bg: linear-gradient(to right, #22d3ee, #0ea5e9);
             --scroll-thumb: #475569; --scroll-track: #1e293b;
         }
         .light-theme {
+            /* */
+            --bg-primary-rgb: 241, 245, 249; /* slate-100 */
             --bg-primary: #f1f5f9; --bg-secondary: #ffffff; --bg-tertiary: #f8fafc;
             --text-primary: #0f172a; --text-secondary: #475569; --accent-color: #0891b2;
             --border-color: #e2e8f0; --btn-accent-bg: linear-gradient(to right, #06b6d4, #0284c7);
@@ -89,19 +93,36 @@
         #dropdown-menu {
             transition: opacity 0.2s ease, transform 0.2s ease;
         }
+
+        /* */
+        .glass-menubar {
+            background-color: rgba(var(--bg-primary-rgb), 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px); /* Prefiks untuk kompatibilitas Safari */
+        }
     </style>
 </head>
 <body class="bg-primary text-primary">
 
-    <header class="sticky top-0 z-50 py-2 px-4 sm:px-6 md:px-8 border-b border-custom" style="background-color: rgba(var(--bg-primary-rgb), 0.8); backdrop-filter: blur(10px);">
-        <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+    <header class="glass-menubar sticky top-0 z-50 py-2 px-4 sm:px-6 md:px-8 border-b border-custom">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            -->
+            <div class="w-10"></div> 
+
             <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-accent"><path d="M12 1a3 3 0 0 0-3 3v2h6V4a3 3 0 0 0-3-3z"></path><path d="M12 8H3a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-9"></path><path d="M9 12v4"></path><path d="M15 12v4"></path></svg>
+                -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-accent">
+                    <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+                    <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                    <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                    <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                    <path d="M7 12h10"></path>
+                </svg>
                 <h1 class="text-xl font-bold text-primary">AIPower<span class="text-accent">OCR</span></h1>
             </div>
             
             <div class="relative">
-                <button id="menu-btn" class="p-2 rounded-full text-primary bg-secondary hover:bg-tertiary transition duration-300 focus:outline-none" title="Opsi">
+                <button id="menu-btn" class="p-2 rounded-full text-primary bg-tertiary/50 hover:bg-tertiary transition duration-300 focus:outline-none" title="Opsi">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
                 </button>
                 <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-56 bg-secondary rounded-lg shadow-lg border border-custom z-50 origin-top-right">
@@ -210,7 +231,6 @@
     <canvas id="camera-canvas" class="hidden"></canvas>
 
     <script type="module">
-        // --- Inisialisasi Elemen DOM ---
         const body = document.body;
         const ocrResult = document.getElementById('ocr-result');
         const outputPlaceholder = document.getElementById('output-placeholder');
@@ -233,7 +253,6 @@
         const menuApiSettings = document.getElementById('menu-api-settings');
         let currentStream = null;
 
-        // --- Fungsi Notifikasi & Bantuan ---
         let snackbarTimeout;
         function showSnackbar(message, type = 'info') {
             const snackbar = document.getElementById('snackbar');
@@ -249,7 +268,6 @@
             setTimeout(() => { element.classList.remove('btn-active-feedback'); }, 150);
         }
 
-        // --- Logika Menu Dropdown ---
         menuBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             dropdownMenu.classList.toggle('hidden');
@@ -260,12 +278,8 @@
             }
         });
 
-        // --- Logika Kontrol UI (dari Dropdown) ---
         function applyTheme(theme) {
             body.classList.toggle('light-theme', theme === 'light');
-            const primaryBg = getComputedStyle(body).getPropertyValue('--bg-primary').trim();
-            const rgb = primaryBg.match(/\d+/g).join(', ');
-            document.querySelector('header').style.backgroundColor = `rgba(${rgb}, 0.8)`;
         }
         menuThemeToggle.addEventListener('click', () => {
             const newTheme = body.classList.contains('light-theme') ? 'dark' : 'light';
@@ -291,7 +305,6 @@
             apiSettingsView.classList.add('view-active');
         });
 
-        // --- Logika Pengaturan API ---
         function loadApiKey() {
             const savedKey = localStorage.getItem('user_google_api_key');
             if (savedKey) {
@@ -311,7 +324,6 @@
             } else { showSnackbar('Format Kunci API tidak valid.', 'error'); }
         });
 
-        // --- Logika Status UI & Font ---
         function setUIState(state) {
             const isTextArabic = (text) => /[\u0600-\u06FF]/.test(text);
             scanAnimation.classList.toggle('hidden', state !== 'loading');
@@ -327,7 +339,6 @@
             }
         }
         
-        // --- Logika Kamera ---
         async function openCamera() {
             if (!('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices)) {
                 showSnackbar('Kamera tidak didukung di browser ini.', 'error');
@@ -364,7 +375,6 @@
             closeCamera();
         });
 
-        // --- Logika Inti OCR ---
         async function processImageFile(file) {
             if (!file) return;
             const apiKey = localStorage.getItem('user_google_api_key');
@@ -423,7 +433,6 @@
             }
         }
         
-        // --- Event Listeners untuk Input ---
         const uploadImageBtn = document.getElementById('upload-image-btn');
         const imageUploadInput = document.getElementById('image-upload-input');
         uploadImageBtn.addEventListener('click', () => imageUploadInput.click());
@@ -447,7 +456,6 @@
             }
         });
 
-        // --- Inisialisasi Aplikasi ---
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             applyTheme(savedTheme);
