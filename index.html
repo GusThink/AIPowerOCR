@@ -70,19 +70,10 @@
         }
         
         #camera-modal { background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); }
-        #camera-stream { transform: scaleX(-1); }
-
-        #dropdown-menu { transition: opacity 0.2s ease, transform 0.2s ease; }
-
-        .glass-menubar {
-            background-color: rgba(var(--bg-primary-rgb), 0.7);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-        }
-
-        #image-cropper-container { max-height: 400px; }
-        #image-to-crop { max-width: 100%; }
         
-        /* PENAMBAHAN: Style untuk overlay dan animasi scan di area crop */
+        /* PENYESUAIAN: Menghapus transform scaleX(-1) agar kamera tidak terbalik */
+        #camera-stream { /* No transform needed */ }
+
         #scan-overlay {
             background-color: rgba(var(--bg-primary-rgb), 0.5);
             backdrop-filter: blur(2px);
@@ -98,7 +89,16 @@
             0% { top: 0; } 50% { top: 100%; } 100% { top: 0; }
         }
 
-        /* PENAMBAHAN: Style untuk area hasil yang bisa diedit saat fokus */
+        #dropdown-menu { transition: opacity 0.2s ease, transform 0.2s ease; }
+
+        .glass-menubar {
+            background-color: rgba(var(--bg-primary-rgb), 0.7);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        }
+
+        #image-cropper-container { max-height: 400px; }
+        #image-to-crop { max-width: 100%; }
+        
         #ocr-result:focus {
             outline: 2px solid var(--accent-color);
             border-radius: 8px;
@@ -145,7 +145,6 @@
     <main class="p-4 sm:p-6 md:p-10 flex justify-center items-start min-h-[90vh]">
         <div id="device-preview-container" class="mx-auto main-card border-custom flex flex-col mobile-view">
             <div id="content-container" class="flex-grow p-4 sm:p-6 space-y-6">
-
                 <div id="image-input-area">
                     <div class="text-center p-6 bg-secondary rounded-xl border-2 border-dashed border-custom flex flex-col items-center justify-center min-h-[200px] overflow-hidden">
                         <div id="image-placeholder" class="flex flex-col items-center justify-center">
@@ -228,20 +227,32 @@
     <div id="snackbar"></div>
 
     <div id="camera-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 hidden">
-        <div class="bg-secondary rounded-xl shadow-lg border border-custom w-full max-w-lg overflow-hidden">
+        <div class="bg-secondary rounded-xl shadow-lg border border-custom w-full max-w-lg overflow-hidden relative">
             <video id="camera-stream" class="w-full h-auto" autoplay playsinline></video>
-            <div class="p-4 flex flex-col gap-3">
+            <div id="grid-overlay" class="absolute inset-0 pointer-events-none grid grid-cols-3 grid-rows-3">
+                <div class="col-span-1 row-span-1 border-r border-b border-white/20"></div>
+                <div class="col-span-1 row-span-1 border-r border-b border-white/20"></div>
+                <div class="col-span-1 row-span-1 border-b border-white/20"></div>
+                <div class="col-span-1 row-span-1 border-r border-b border-white/20"></div>
+                <div class="col-span-1 row-span-1 border-r border-b border-white/20"></div>
+                <div class="col-span-1 row-span-1 border-b border-white/20"></div>
+                <div class="col-span-1 row-span-1 border-r border-white/20"></div>
+                <div class="col-span-1 row-span-1 border-r border-white/20"></div>
+                <div class="col-span-1 row-span-1"></div>
+            </div>
+            <div class="p-4 flex flex-col gap-3 absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent">
                 <button id="capture-btn" class="w-full text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-lg" style="background-image: var(--btn-accent-bg);">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path><circle cx="12" cy="13" r="3"></circle></svg>
                     Ambil Gambar
                 </button>
-                <button id="close-camera-btn" class="w-full font-semibold py-2 px-4 rounded-lg bg-tertiary text-primary hover:bg-slate-600 transition-colors">Tutup</button>
+                <button id="close-camera-btn" class="w-full font-semibold py-2 px-4 rounded-lg bg-tertiary/80 text-primary hover:bg-slate-600 transition-colors">Tutup</button>
             </div>
         </div>
     </div>
     <canvas id="camera-canvas" class="hidden"></canvas>
 
     <script type="module">
+        // --- Inisialisasi Elemen ---
         const body = document.body;
         const ocrResult = document.getElementById('ocr-result');
         const outputPlaceholder = document.getElementById('output-placeholder');
@@ -265,11 +276,11 @@
         const imageToCrop = document.getElementById('image-to-crop');
         const extractBtn = document.getElementById('extract-btn');
         const resetBtn = document.getElementById('reset-btn');
-        // PENAMBAHAN: Inisialisasi elemen overlay scan
         const scanOverlay = document.getElementById('scan-overlay');
         let cropper = null;
         let currentStream = null;
 
+        // --- Fungsi Bantuan ---
         let snackbarTimeout;
         function showSnackbar(message) {
             const snackbar = document.getElementById('snackbar');
@@ -283,6 +294,7 @@
             setTimeout(() => { element.classList.remove('btn-active-feedback'); }, 150);
         }
 
+        // --- Logika Menu & UI ---
         menuBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdownMenu.classList.toggle('hidden'); });
         document.addEventListener('click', () => { if (!dropdownMenu.classList.contains('hidden')) dropdownMenu.classList.add('hidden'); });
         function applyTheme(theme) { body.classList.toggle('light-theme', theme === 'light'); }
@@ -300,6 +312,7 @@
         menuApiSettings.addEventListener('click', () => { apiSettingsView.classList.add('view-active'); });
         document.getElementById('back-from-api-settings-btn').addEventListener('click', () => apiSettingsView.classList.remove('view-active'));
 
+        // --- Logika API Key ---
         function loadApiKey() {
             const savedKey = localStorage.getItem('user_google_api_key');
             if (savedKey) {
@@ -317,7 +330,7 @@
             } else { showSnackbar('Format Kunci API tidak valid.'); }
         });
         
-        // PENYESUAIAN: Logika pindah ke performOCR dan renderMixedLanguageText
+        // --- Logika State & Render Teks ---
         function setUIState(state) {
             outputPlaceholder.classList.toggle('hidden', state === 'loading' || state === 'result');
             ocrResult.style.display = (state === 'result') ? 'block' : 'none';
@@ -333,16 +346,15 @@
                 p.textContent = paragraphText || '\u00A0'; 
                 const isArabic = /^[\u0600-\u06FF]/.test(paragraphText.trim());
                 if (isArabic) {
-                    p.className = 'font-naskh text-right';
-                    p.style.direction = 'rtl';
+                    p.className = 'font-naskh text-right'; p.style.direction = 'rtl';
                 } else {
-                    p.className = 'font-sans text-left';
-                    p.style.direction = 'ltr';
+                    p.className = 'font-sans text-left'; p.style.direction = 'ltr';
                 }
                 container.appendChild(p);
             });
         }
         
+        // --- Logika Kamera ---
         async function openCamera() {
             if (!('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices)) { showSnackbar('Kamera tidak didukung.'); return; }
             cameraModal.classList.remove('hidden');
@@ -358,17 +370,19 @@
         captureBtn.addEventListener('click', () => {
             canvasElement.width = videoElement.videoWidth; canvasElement.height = videoElement.videoHeight;
             const context = canvasElement.getContext('2d');
-            context.translate(canvasElement.width, 0); context.scale(-1, 1);
+            // PENYESUAIAN: Menghapus flip pada canvas agar gambar tidak terbalik
             context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+            // PENYESUAIAN: Mengubah format ke PNG untuk kualitas tanpa kompresi
             canvasElement.toBlob(blob => {
                 if (blob) {
-                    const imageFile = new File([blob], `capture.jpg`, { type: 'image/jpeg' });
+                    const imageFile = new File([blob], `capture.png`, { type: 'image/png' });
                     loadImageForCropping(imageFile);
                 }
-            }, 'image/jpeg');
+            }, 'image/png');
             closeCamera();
         });
         
+        // --- Logika Cropping ---
         function loadImageForCropping(file) {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -380,14 +394,10 @@
             };
             reader.readAsDataURL(file);
         }
-
         extractBtn.addEventListener('click', () => {
             if (!cropper) return;
-            // PENAMBAHAN: Tampilkan animasi scan saat ekstraksi dimulai
             scanOverlay.classList.remove('hidden');
-            extractBtn.disabled = true;
-            resetBtn.disabled = true;
-
+            extractBtn.disabled = true; resetBtn.disabled = true;
             cropper.getCroppedCanvas().toBlob((blob) => {
                 const croppedFile = new File([blob], 'cropped.png', { type: 'image/png' });
                 performOCR(croppedFile);
@@ -401,6 +411,7 @@
             setUIState('idle'); 
         });
 
+        // --- Logika Inti OCR ---
         async function performOCR(file) {
             if (!file) return;
             const apiKey = localStorage.getItem('user_google_api_key');
@@ -431,13 +442,12 @@
                 showSnackbar(`Terjadi kesalahan: ${error.message}`);
                 setUIState('idle');
             } finally {
-                // PENAMBAHAN: Sembunyikan animasi dan aktifkan kembali tombol setelah selesai
                 scanOverlay.classList.add('hidden');
-                extractBtn.disabled = false;
-                resetBtn.disabled = false;
+                extractBtn.disabled = false; resetBtn.disabled = false;
             }
         }
         
+        // --- Event Listeners Input Awal ---
         const uploadImageBtn = document.getElementById('upload-image-btn');
         const imageUploadInput = document.getElementById('image-upload-input');
         uploadImageBtn.addEventListener('click', () => imageUploadInput.click());
@@ -459,6 +469,7 @@
             }
         });
 
+        // --- Inisialisasi Aplikasi ---
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             applyTheme(savedTheme); applyDeviceView(0); loadApiKey(); setUIState('idle');
