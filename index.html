@@ -3,130 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIPowerOCR - The Power Full OCR</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+    <title>AI OCR Scanner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-    <div id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <h2>Menu</h2>
-            <a href="javascript:void(0)" class="close-btn" id="closeSidebarBtn">&times;</a>
-        </div>
-        <div class="sidebar-content">
-            <a href="#">Tentang Aplikasi</a>
-            <hr>
-            <h3>Pengaturan</h3>
-            <div class="api-key-section">
-                <label for="api-key-input">Kunci API Gemini</label>
-                <div class="api-key-info">
-                    <input type="password" id="api-key-input" placeholder="Masukkan kunci API Anda">
-                    <a href="https://aistudio.google.com/app/apikey" target="_blank" title="Dapatkan Kunci API">?</a>
-                </div>
-                <p class="api-key-desc">Kunci Anda disimpan aman di browser.</p>
-            </div>
-        </div>
-    </div>
+<body class="bg-primary text-primary">
 
-    <header class="main-header">
-        <button id="openSidebarBtn" class="control-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-        </button>
-        <span class="header-title">AIPowerOCR</span>
-        <div class="header-controls">
-            <button id="view-mode-btn" class="control-btn">
-                <svg class="desktop-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-                <svg class="tablet-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-                <svg class="mobile-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-            </button>
-            <button id="theme-toggle" class="control-btn">
-                <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                <svg class="moon-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            </button>
+    <header class="bg-header backdrop-blur-sm sticky top-0 z-50 py-2 px-4 border-b border-custom">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="font-bold text-lg">AI OCR Scanner</div>
+            <div class="flex items-center gap-2">
+                <button id="device-toggle" class="p-2 rounded-full bg-secondary hover:bg-tertiary transition-colors" title="Ganti Tampilan Perangkat">
+                    <svg id="icon-mobile" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                    <svg id="icon-tablet" class="h-5 w-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                    <svg id="icon-pc" class="h-5 w-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                </button>
+                <button id="theme-toggle" class="p-2 rounded-full bg-secondary hover:bg-tertiary transition-colors" title="Ganti Mode Terang/Gelap">
+                    <svg id="theme-icon-light" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <svg id="theme-icon-dark" class="h-5 w-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </div>
         </div>
     </header>
 
-    <main class="main-content">
-        <div class="container" id="main-container">
-            <h1>AIPowerOCR</h1>
-            <p class="subtitle">The Power Full OCR.</p>
-            
-            <div class="ocr-interface">
-                <div class="io-column">
-                    <div class="image-drop-zone" id="image-drop-zone">
-                        <div id="image-preview-container" style="display:none;">
-                            <img id="image-preview" src="" alt="Image Preview">
-                        </div>
-                        <div id="placeholder-text">
-                            <p>Seret & lepas, tempel, atau unggah gambar</p>
-                        </div>
-                        <button id="clear-image-btn" title="Hapus Gambar" style="display: none;">&times;</button>
-                        <div id="loading-animation" class="loading-animation" style="display:none;">
-                            <div class="scanner"></div>
-                            <p id="loading-text">Mengekstrak teks...</p>
-                        </div>
+    <main class="p-4 sm:p-6 md:p-10 flex justify-center items-start min-h-[90vh]">
+        <div id="device-preview-container" class="mx-auto border-custom flex flex-col mobile-view">
+            <div id="content-container" class="flex-grow p-4 space-y-4">
+                
+                <div id="image-drop-zone" class="relative border-2 border-dashed border-custom rounded-xl flex flex-col justify-center items-center text-center p-6 min-h-[180px] transition-colors cursor-pointer">
+                    <div id="initial-state" class="space-y-2">
+                        <svg class="mx-auto h-12 w-12 text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21.5 12a9.5 9.5 0 1 1-19 0 9.5 9.5 0 0 1 19 0z" /><path d="M9 10a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-4z" /><path d="M14.5 9.5A1.5 1.5 0 0 0 16 8a1.5 1.5 0 0 0-1.5-1.5A1.5 1.5 0 0 0 13 8a1.5 1.5 0 0 0 1.5 1.5z" /></svg>
+                        <p class="font-semibold text-primary">Tempel, jatuhkan, atau pilih gambar</p>
+                        <p class="text-xs text-secondary">Mendukung format PNG, JPG, dan WebP</p>
                     </div>
-                    <div class="button-group">
-                        <input type="file" id="upload-input" accept="image/*" style="display:none;">
-                        <button id="upload-btn">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                            <span>Unggah File</span>
-                        </button>
-                        <button id="camera-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-                            <span>Ambil Foto</span>
-                        </button>
+                     <div id="loading-state" class="hidden absolute inset-0 bg-secondary/80 flex flex-col justify-center items-center rounded-xl">
+                        <svg class="animate-spin h-8 w-8 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <p class="mt-3 text-sm font-medium">Memindai Teks...</p>
                     </div>
+                    <img id="image-preview" src="" class="hidden max-h-48 rounded-lg object-contain">
                 </div>
 
-                <div class="separator-column">
-                    <button id="extract-btn" class="extract-btn-main">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
-                        <span>Ekstrak Teks</span>
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="upload-btn" class="action-btn bg-tertiary">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        Unggah
+                    </button>
+                    <button id="camera-btn" class="action-btn bg-tertiary">
+                        <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                        Kamera
+                    </button>
+                </div>
+                <input type="file" id="image-upload-input" class="hidden" accept="image/*">
+                <input type="file" id="camera-input" class="hidden" accept="image/*" capture="environment">
+
+                <div class="space-y-2">
+                     <label for="output-text" class="font-semibold text-primary">Hasil Pindaian Teks</label>
+                    <textarea id="output-text" rows="10" class="w-full bg-tertiary border border-custom rounded-lg p-3 text-primary focus:ring-2 focus:ring-accent transition" placeholder="Hasil teks akan muncul di sini..."></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="copy-btn" class="action-btn accent-btn">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                        Salin
+                    </button>
+                    <button id="download-btn" class="action-btn accent-btn">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Unduh
                     </button>
                 </div>
 
-                <div class="io-column">
-                    <div class="text-output-zone">
-                        <textarea id="text-output" readonly placeholder="Hasil ekstraksi teks akan muncul di sini..."></textarea>
-                    </div>
-                    <div class="button-group">
-                        <button id="copy-btn">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                            <span>Salin</span>
-                        </button>
-                        <button id="clear-btn" class="secondary-btn">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                            <span>Hapus Teks</span>
-                        </button>
-                    </div>
-                </div>
             </div>
-            
-            <p class="warning-bar">
-                ⚠️ Harap periksa kembali hasil ekstraksi. Akurasi AI tidak selalu 100% sempurna.
-            </p>
         </div>
     </main>
-    
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal-btn">&times;</span>
-            <div id="modal-body"></div>
-        </div>
-    </div>
 
-    <div id="camera-modal" class="modal">
-        <div class="camera-modal-content">
-            <video id="camera-stream" autoplay playsinline></video>
-            <div class="button-group">
-                <button id="capture-btn">Ambil Gambar</button>
-                <button id="close-camera-btn" class="secondary-btn">Tutup</button>
-            </div>
-        </div>
-    </div>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
-    <script src="script.js"></script>
+    <div id="snackbar"></div>
+
+    <script src="js/app.js"></script>
 </body>
 </html>
