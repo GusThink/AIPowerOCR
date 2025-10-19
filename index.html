@@ -28,14 +28,12 @@
 
         .bg-primary { background-color: var(--bg-primary); }
         .bg-secondary { background-color: var(--bg-secondary); }
-        .bg-tertiary { background-color: var(--bg-tertiary); }
         .text-primary { color: var(--text-primary); }
         .text-secondary { color: var(--text-secondary); }
-        .text-accent { color: var(--text-accent); }
         .border-custom { border-color: var(--border-color); }
         
         #device-preview-container {
-            transition: width 0.5s ease, height 0.5s ease, border-radius 0.5s ease, box-shadow 0.5s ease;
+            transition: width 0.5s ease, height 0.5s ease;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             overflow: hidden; border: 8px solid #333; background-color: var(--bg-primary); position: relative;
         }
@@ -251,18 +249,13 @@
             snackbar.textContent = message; snackbar.className = 'show';
             snackbarTimeout = setTimeout(() => { snackbar.className = snackbar.className.replace('show', ''); }, 3000);
         }
-        function applyClickFeedback(element) {
-            if(!element) return;
-            element.classList.add('btn-active-feedback');
-            setTimeout(() => { element.classList.remove('btn-active-feedback'); }, 150);
-        }
 
         menuBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdownMenu.classList.toggle('hidden'); });
         document.addEventListener('click', () => { if (!dropdownMenu.classList.contains('hidden')) dropdownMenu.classList.add('hidden'); });
         function applyTheme(theme) { body.classList.toggle('light-theme', theme === 'light'); }
         menuThemeToggle.addEventListener('click', () => {
             const newTheme = body.classList.contains('light-theme') ? 'dark' : 'light';
-            localStorage.setItem('theme', newTheme); applyTheme(newTheme); applyClickFeedback(menuThemeToggle);
+            localStorage.setItem('theme', newTheme); applyTheme(newTheme);
         });
         let currentDeviceIndex = 0;
         const deviceStates = ['mobile-view', 'tablet-view', 'pc-view'];
@@ -270,7 +263,7 @@
             document.getElementById('device-preview-container').className = `mx-auto main-card border-custom flex flex-col ${deviceStates[index]}`;
             currentDeviceIndex = index;
         }
-        menuDeviceToggle.addEventListener('click', () => { applyDeviceView((currentDeviceIndex + 1) % deviceStates.length); applyClickFeedback(menuDeviceToggle); });
+        menuDeviceToggle.addEventListener('click', () => { applyDeviceView((currentDeviceIndex + 1) % deviceStates.length); });
         menuApiSettings.addEventListener('click', () => { apiSettingsView.classList.add('view-active'); });
         document.getElementById('back-from-api-settings-btn').addEventListener('click', () => apiSettingsView.classList.remove('view-active'));
 
@@ -292,15 +285,14 @@
         });
         
         function setUIState(state) {
-            outputPlaceholder.classList.toggle('hidden', state === 'loading' || state === 'result' || state === 'tidied');
-            ocrResult.style.display = (state === 'result' || state === 'tidied') ? 'block' : 'none';
-            copyTextBtn.disabled = (state !== 'result' && state !== 'tidied');
-            tidyTextBtn.disabled = (state !== 'result' && state !== 'tidied');
-            
-            if (state === 'result') {
-                revertBtn.classList.add('hidden');
-                tidyTextBtn.classList.remove('hidden');
-            }
+            const isResultState = (state === 'result' || state === 'tidied');
+            outputPlaceholder.classList.toggle('hidden', isResultState);
+            ocrResult.style.display = isResultState ? 'block' : 'none';
+            copyTextBtn.disabled = !isResultState;
+            tidyTextBtn.disabled = !isResultState;
+
+            revertBtn.classList.toggle('hidden', state !== 'tidied');
+            tidyTextBtn.classList.toggle('hidden', state === 'tidied');
         }
 
         function renderMixedLanguageText(container, text, isTidied = false) {
@@ -312,9 +304,9 @@
                 p.textContent = paragraphText || '\u00A0'; 
                 const isArabic = /^[\u0600-\u06FF]/.test(paragraphText.trim());
                 if (isArabic) {
-                    p.className = 'font-naskh text-right'; p.style.direction = 'rtl';
+                    p.className = 'font-naskh'; p.style.direction = 'rtl';
                 } else {
-                    p.className = 'font-sans text-left'; p.style.direction = 'ltr';
+                    p.className = 'font-sans'; p.style.direction = 'ltr';
                 }
                 if(isTidied) { p.style.textAlign = 'justify'; }
                 container.appendChild(p);
@@ -380,7 +372,6 @@
             const apiKey = localStorage.getItem('user_google_api_key');
             if (!apiKey) { showSnackbar('Kunci API belum diatur.'); menuApiSettings.click(); return; }
             
-            setUIState('loading');
             try {
                 const base64Data = await new Promise((resolve, reject) => {
                     const reader = new FileReader(); reader.readAsDataURL(file);
@@ -434,23 +425,22 @@
                     renderMixedLanguageText(ocrResult, tidiedText, true);
                     showSnackbar("Teks berhasil dirapikan!");
                     setUIState('tidied');
-                    tidyTextBtn.classList.add('hidden');
-                    revertBtn.classList.remove('hidden');
                 } else { throw new Error("Gagal mendapatkan hasil dari AI."); }
             } catch (error) {
                 showSnackbar(`Gagal merapikan teks: ${error.message}`);
             } finally {
                 tidyTextBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg> Rapikan`;
-                tidyTextBtn.disabled = false;
+                if (revertBtn.classList.contains('hidden')) {
+                  tidyTextBtn.disabled = false;
+                }
             }
         }
         
         revertBtn.addEventListener('click', () => {
             if(originalOcrText) {
                 renderMixedLanguageText(ocrResult, originalOcrText, false);
-                revertBtn.classList.add('hidden');
-                tidyTextBtn.classList.remove('hidden');
                 showSnackbar("Teks dikembalikan ke versi asli.");
+                setUIState('result');
             }
         });
 
@@ -471,7 +461,6 @@
                 navigator.clipboard.writeText(ocrResult.innerText)
                     .then(() => showSnackbar('Teks berhasil disalin!'))
                     .catch(() => showSnackbar('Gagal menyalin teks.'));
-                applyClickFeedback(copyTextBtn);
             }
         });
         tidyTextBtn.addEventListener('click', tidyUpText);
