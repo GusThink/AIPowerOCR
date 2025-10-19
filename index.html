@@ -18,14 +18,12 @@
             --bg-primary: #0f172a; --bg-secondary: #1e293b; --bg-tertiary: #334155;
             --text-primary: #f1f5f9; --text-secondary: #94a3b8; --accent-color: #22d3ee;
             --border-color: #475569; --btn-accent-bg: linear-gradient(to right, #22d3ee, #0ea5e9);
-            --scroll-thumb: #475569; --scroll-track: #1e293b;
         }
         .light-theme {
             --bg-primary-rgb: 241, 245, 249;
             --bg-primary: #f1f5f9; --bg-secondary: #ffffff; --bg-tertiary: #f8fafc;
             --text-primary: #0f172a; --text-secondary: #475569; --accent-color: #0891b2;
             --border-color: #e2e8f0; --btn-accent-bg: linear-gradient(to right, #06b6d4, #0284c7);
-            --scroll-thumb: #cbd5e1; --scroll-track: #f1f5f9;
         }
 
         .bg-primary { background-color: var(--bg-primary); }
@@ -36,11 +34,6 @@
         .text-accent { color: var(--text-accent); }
         .border-custom { border-color: var(--border-color); }
         
-        body, .main-card, button, textarea { transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--scroll-track); }
-        ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 10px; }
-
         #device-preview-container {
             transition: width 0.5s ease, height 0.5s ease, border-radius 0.5s ease, box-shadow 0.5s ease;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -51,31 +44,6 @@
         .tablet-view { width: 768px; height: 1024px; max-width: 100%; max-height: 85vh; border-radius: 1.5rem; }
         .mobile-view { width: 375px; height: 667px; max-width: 100%; max-height: 85vh; border-radius: 2rem; }
 
-        #snackbar {
-            visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
-            text-align: center; border-radius: 8px; padding: 16px; position: fixed;
-            z-index: 100; left: 50%; transform: translateX(-50%); bottom: 30px;
-            transition: visibility 0s, opacity 0.5s, bottom 0.5s;
-        }
-        #snackbar.show { visibility: visible; opacity: 1; bottom: 50px; }
-        .light-theme #snackbar { background-color: var(--text-primary); color: var(--bg-primary); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-
-        #api-settings-view {
-            transition: transform 0.3s ease-in-out; transform: translateX(100%);
-        }
-        #api-settings-view.view-active { transform: translateX(0); }
-        
-        .btn-active-feedback {
-            transform: scale(0.98); filter: brightness(0.9); transition: transform 0.1s ease, filter 0.1s ease;
-        }
-        
-        #camera-modal { background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); }
-        #camera-stream { /* No transform needed */ }
-
-        #scan-overlay {
-            background-color: rgba(var(--bg-primary-rgb), 0.5);
-            backdrop-filter: blur(2px);
-        }
         #scan-overlay .scan-line {
             width: 100%; height: 4px;
             background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
@@ -87,20 +55,14 @@
             0% { top: 0; } 50% { top: 100%; } 100% { top: 0; }
         }
 
-        #dropdown-menu { transition: opacity 0.2s ease, transform 0.2s ease; }
-
         .glass-menubar {
             background-color: rgba(var(--bg-primary-rgb), 0.7);
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
         }
-
-        #image-cropper-container { max-height: 400px; }
-        #image-to-crop { max-width: 100%; }
         
         #ocr-result:focus {
             outline: 2px solid var(--accent-color);
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(var(--accent-color-rgb, 34, 211, 238), 0.3);
         }
     </style>
 </head>
@@ -330,11 +292,12 @@
         });
         
         function setUIState(state) {
-            outputPlaceholder.classList.toggle('hidden', state === 'loading' || state === 'result');
-            ocrResult.style.display = (state === 'result') ? 'block' : 'none';
-            copyTextBtn.disabled = (state !== 'result');
-            tidyTextBtn.disabled = (state !== 'result');
-            if (state !== 'tidied') {
+            outputPlaceholder.classList.toggle('hidden', state === 'loading' || state === 'result' || state === 'tidied');
+            ocrResult.style.display = (state === 'result' || state === 'tidied') ? 'block' : 'none';
+            copyTextBtn.disabled = (state !== 'result' && state !== 'tidied');
+            tidyTextBtn.disabled = (state !== 'result' && state !== 'tidied');
+            
+            if (state === 'result') {
                 revertBtn.classList.add('hidden');
                 tidyTextBtn.classList.remove('hidden');
             }
@@ -349,9 +312,9 @@
                 p.textContent = paragraphText || '\u00A0'; 
                 const isArabic = /^[\u0600-\u06FF]/.test(paragraphText.trim());
                 if (isArabic) {
-                    p.className = 'font-naskh'; p.style.direction = 'rtl';
+                    p.className = 'font-naskh text-right'; p.style.direction = 'rtl';
                 } else {
-                    p.className = 'font-sans'; p.style.direction = 'ltr';
+                    p.className = 'font-sans text-left'; p.style.direction = 'ltr';
                 }
                 if(isTidied) { p.style.textAlign = 'justify'; }
                 container.appendChild(p);
@@ -409,7 +372,7 @@
             cropperStage.classList.add('hidden');
             imageToCrop.src = '';
             setUIState('idle'); 
-            originalOcrText = ''; // Hapus teks asli saat gambar direset
+            originalOcrText = '';
         });
 
         async function performOCR(file) {
@@ -432,10 +395,11 @@
                 const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (extractedText) {
                     originalOcrText = extractedText;
-                    renderMixedLanguageText(ocrResult, extractedText);
+                    renderMixedLanguageText(ocrResult, extractedText, false);
                     showSnackbar('Teks berhasil diekstrak!');
                     setUIState('result');
                 } else {
+                    originalOcrText = '';
                     showSnackbar('Tidak ada teks yang ditemukan.');
                     setUIState('idle');
                 }
@@ -457,7 +421,7 @@
             tidyTextBtn.innerHTML = `<svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Merapikan...`;
             tidyTextBtn.disabled = true;
 
-            const systemPrompt = "You are a text formatting expert. Your only task is to intelligently merge lines into proper paragraphs. CRITICAL RULE: DO NOT merge lines that appear to be part of a list (e.g., starting with *, -, •, numbers like 1., or letters like a.). Preserve these as separate lines. For all other lines, merge them if they belong to the same paragraph by replacing the single newline with a space. DO NOT change, add, or delete any words. Output only the raw, corrected text.";
+            const systemPrompt = "You are an expert text formatter. Your task is to intelligently merge lines into proper paragraphs. CRITICAL RULE: DO NOT merge lines that appear to be part of a list (e.g., starting with *, -, •, numbers like 1., or letters like a.). Preserve these as separate lines. For all other lines, merge them if they belong to the same paragraph by replacing the single newline with a space. DO NOT change, add, or delete any words. Output only the raw, corrected text.";
             
             try {
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
