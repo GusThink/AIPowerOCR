@@ -274,10 +274,8 @@
         const scanOverlay = document.getElementById('scan-overlay');
         // PENAMBAHAN: Inisialisasi tombol "Rapikan Teks"
         const tidyTextBtn = document.getElementById('tidy-text-btn');
-		const revertBtn = document.getElementById('revert-btn');
         let cropper = null;
         let currentStream = null;
-		let originalOcrText = null;
 
         let snackbarTimeout;
         function showSnackbar(message) {
@@ -403,35 +401,6 @@
             imageToCrop.src = '';
             setUIState('idle'); 
         });
-		
-		function setUIState(state) {
-            outputPlaceholder.classList.toggle('hidden', state === 'loading' || state === 'result');
-            ocrResult.style.display = (state === 'result') ? 'block' : 'none';
-            copyTextBtn.disabled = (state !== 'result');
-            tidyTextBtn.disabled = (state !== 'result');
-            if (state !== 'tidied') {
-                revertBtn.classList.add('hidden');
-                tidyTextBtn.classList.remove('hidden');
-            }
-        }
-
-        function renderMixedLanguageText(container, text, isTidied = false) {
-            container.innerHTML = ''; 
-            if (!text || typeof text !== 'string') return;
-            const paragraphs = text.split('\n');
-            paragraphs.forEach(paragraphText => {
-                const p = document.createElement('p');
-                p.textContent = paragraphText || '\u00A0'; 
-                const isArabic = /^[\u0600-\u06FF]/.test(paragraphText.trim());
-                if (isArabic) {
-                    p.className = 'font-naskh'; p.style.direction = 'rtl';
-                } else {
-                    p.className = 'font-sans'; p.style.direction = 'ltr';
-                }
-                if(isTidied) { p.style.textAlign = 'justify'; }
-                container.appendChild(p);
-            });
-        }
 
         async function performOCR(file) {
             if (!file) return;
@@ -515,14 +484,7 @@
                 tidyTextBtn.disabled = false;
             }
         }
-        revertBtn.addEventListener('click', () => {
-            if(originalOcrText) {
-                renderMixedLanguageText(ocrResult, originalOcrText, false);
-                revertBtn.classList.add('hidden');
-                tidyTextBtn.classList.remove('hidden');
-                showSnackbar("Teks dikembalikan ke versi asli.");
-            }
-        });
+        
         // --- Event Listeners ---
         const uploadImageBtn = document.getElementById('upload-image-btn');
         const imageUploadInput = document.getElementById('image-upload-input');
