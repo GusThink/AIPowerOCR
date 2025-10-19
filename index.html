@@ -274,8 +274,10 @@
         const scanOverlay = document.getElementById('scan-overlay');
         // PENAMBAHAN: Inisialisasi tombol "Rapikan Teks"
         const tidyTextBtn = document.getElementById('tidy-text-btn');
+		const revertBtn = document.getElementById('revert-btn');
         let cropper = null;
         let currentStream = null;
+		let originalOcrText = '';
 
         let snackbarTimeout;
         function showSnackbar(message) {
