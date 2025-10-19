@@ -459,7 +459,19 @@
                 </svg> Merapikan...`;
             tidyTextBtn.disabled = true;
 
-            const systemPrompt = "You are a text formatting expert. Your only task is to intelligently merge lines into proper paragraphs. CRITICAL RULE: DO NOT merge lines that appear to be part of a list (e.g., starting with *, -, •, numbers like 1., or letters like a.). Preserve these as separate lines. For all other lines, merge them if they belong to the same paragraph by replacing the single newline with a space. DO NOT change, add, or delete any words. Output only the raw, corrected text.";
+            const systemPrompt = "You are a text formatting expert. Your only task is to intelligently merge lines from OCR-extracted text into proper, flowing paragraphs.
+
+				CRITICAL RULES:
+
+				DO NOT change, add, or delete any words. Your sole function is to fix line breaks.
+
+				DO NOT merge lines that appear to be part of a list. Preserve lines starting with markers like *, -, •, numbers (e.g., 1.), or letters (e.g., a.) as separate, individual lines.
+
+				For all other lines, merge them into a single paragraph by replacing the unnecessary single line breaks with a single space.
+
+				Preserve intentional paragraph breaks (like double newlines).
+
+				Output only the raw, corrected text without any commentary or extra formatting.";
             
             try {
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
