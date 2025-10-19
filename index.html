@@ -186,12 +186,8 @@
                     <div class="p-4 flex justify-between items-center border-b border-custom">
                          <h2 class="text-lg font-bold text-accent">Hasil Ekstraksi</h2>
                          <div class="flex items-center gap-2">
-                             <button id="revert-btn" class="hidden flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors" title="Kembali ke teks asli">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-                                Asli
-                             </button>
-                             <button id="tidy-text-btn" class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Rapikan Paragraf Otomatis">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                            <button id="tidy-text-btn" class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Rapikan Paragraf Otomatis">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                                 Rapikan
                              </button>
                              <button id="copy-text-btn" class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Salin Teks">
@@ -276,11 +272,10 @@
         const extractBtn = document.getElementById('extract-btn');
         const resetBtn = document.getElementById('reset-btn');
         const scanOverlay = document.getElementById('scan-overlay');
+        // PENAMBAHAN: Inisialisasi tombol "Rapikan Teks"
         const tidyTextBtn = document.getElementById('tidy-text-btn');
-        const revertBtn = document.getElementById('revert-btn');
         let cropper = null;
         let currentStream = null;
-        let originalOcrText = '';
 
         let snackbarTimeout;
         function showSnackbar(message) {
@@ -333,14 +328,11 @@
             outputPlaceholder.classList.toggle('hidden', state === 'loading' || state === 'result');
             ocrResult.style.display = (state === 'result') ? 'block' : 'none';
             copyTextBtn.disabled = (state !== 'result');
+            // PENAMBAHAN: Tombol "Rapikan Teks" juga diaktifkan/dinonaktifkan
             tidyTextBtn.disabled = (state !== 'result');
-            if (state !== 'tidied') {
-                revertBtn.classList.add('hidden');
-                tidyTextBtn.classList.remove('hidden');
-            }
         }
 
-        function renderMixedLanguageText(container, text, isTidied = false) {
+        function renderMixedLanguageText(container, text) {
             container.innerHTML = ''; 
             if (!text || typeof text !== 'string') return;
             const paragraphs = text.split('\n');
@@ -349,11 +341,10 @@
                 p.textContent = paragraphText || '\u00A0'; 
                 const isArabic = /^[\u0600-\u06FF]/.test(paragraphText.trim());
                 if (isArabic) {
-                    p.className = 'font-naskh'; p.style.direction = 'rtl';
+                    p.className = 'font-naskh text-right'; p.style.direction = 'rtl';
                 } else {
-                    p.className = 'font-sans'; p.style.direction = 'ltr';
+                    p.className = 'font-sans text-left'; p.style.direction = 'ltr';
                 }
-                if(isTidied) { p.style.textAlign = 'justify'; }
                 container.appendChild(p);
             });
         }
@@ -409,7 +400,6 @@
             cropperStage.classList.add('hidden');
             imageToCrop.src = '';
             setUIState('idle'); 
-            originalOcrText = ''; // Hapus teks asli saat gambar direset
         });
 
         async function performOCR(file) {
@@ -431,7 +421,6 @@
                 const result = await response.json();
                 const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (extractedText) {
-                    originalOcrText = extractedText;
                     renderMixedLanguageText(ocrResult, extractedText);
                     showSnackbar('Teks berhasil diekstrak!');
                     setUIState('result');
@@ -448,48 +437,55 @@
             }
         }
         
+        // PENAMBAHAN: Fungsi baru untuk merapikan teks via AI
         async function tidyUpText() {
             const currentText = ocrResult.innerText;
-            if (!currentText) { showSnackbar("Tidak ada teks untuk dirapikan."); return; }
-            const apiKey = localStorage.getItem('user_google_api_key');
-            if (!apiKey) { showSnackbar('Kunci API belum diatur.'); menuApiSettings.click(); return; }
+            if (!currentText) {
+                showSnackbar("Tidak ada teks untuk dirapikan.");
+                return;
+            }
 
-            tidyTextBtn.innerHTML = `<svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Merapikan...`;
+            const apiKey = localStorage.getItem('user_google_api_key');
+            if (!apiKey) {
+                showSnackbar('Kunci API belum diatur.');
+                menuApiSettings.click();
+                return;
+            }
+
+            tidyTextBtn.innerHTML = `
+                <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg> Merapikan...`;
             tidyTextBtn.disabled = true;
 
-            const systemPrompt = "You are a text formatting expert. Your only task is to intelligently merge lines into proper paragraphs. CRITICAL RULE: DO NOT merge lines that appear to be part of a list (e.g., starting with *, -, •, numbers like 1., or letters like a.). Preserve these as separate lines. For all other lines, merge them if they belong to the same paragraph by replacing the single newline with a space. DO NOT change, add, or delete any words. Output only the raw, corrected text.";
+            const systemPrompt = "You are a text formatting expert. Your only task is to intelligently merge lines into proper paragraphs. DO NOT change, add, or delete any words. Only replace unnecessary line breaks with a space. Preserve intentional paragraph breaks (like double newlines). Output only the raw, corrected text.";
             
             try {
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
                 const payload = { contents: [{ parts: [{ text: currentText }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
+
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error.message || `API Error`); }
+
                 const result = await response.json();
                 const tidiedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                
                 if (tidiedText) {
-                    renderMixedLanguageText(ocrResult, tidiedText, true);
+                    renderMixedLanguageText(ocrResult, tidiedText);
                     showSnackbar("Teks berhasil dirapikan!");
-                    setUIState('tidied');
-                    tidyTextBtn.classList.add('hidden');
-                    revertBtn.classList.remove('hidden');
-                } else { throw new Error("Gagal mendapatkan hasil dari AI."); }
+                } else {
+                    throw new Error("Gagal mendapatkan hasil dari AI.");
+                }
             } catch (error) {
                 showSnackbar(`Gagal merapikan teks: ${error.message}`);
             } finally {
-                tidyTextBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg> Rapikan`;
+                tidyTextBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Rapikan`;
                 tidyTextBtn.disabled = false;
             }
         }
         
-        revertBtn.addEventListener('click', () => {
-            if(originalOcrText) {
-                renderMixedLanguageText(ocrResult, originalOcrText, false);
-                revertBtn.classList.add('hidden');
-                tidyTextBtn.classList.remove('hidden');
-                showSnackbar("Teks dikembalikan ke versi asli.");
-            }
-        });
-
+        // --- Event Listeners ---
         const uploadImageBtn = document.getElementById('upload-image-btn');
         const imageUploadInput = document.getElementById('image-upload-input');
         uploadImageBtn.addEventListener('click', () => imageUploadInput.click());
@@ -510,8 +506,10 @@
                 applyClickFeedback(copyTextBtn);
             }
         });
+        // PENAMBAHAN: Event listener untuk tombol "Rapikan Teks"
         tidyTextBtn.addEventListener('click', tidyUpText);
 
+        // --- Inisialisasi Aplikasi ---
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             applyTheme(savedTheme); applyDeviceView(0); loadApiKey(); setUIState('idle');
