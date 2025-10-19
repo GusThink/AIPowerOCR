@@ -274,6 +274,7 @@
         const scanOverlay = document.getElementById('scan-overlay');
         // PENAMBAHAN: Inisialisasi tombol "Rapikan Teks"
         const tidyTextBtn = document.getElementById('tidy-text-btn');
+		const systemPrompt = "You are a text formatting expert. Your only task is to intelligently merge lines into proper paragraphs. CRITICAL RULE: DO NOT merge lines that appear to be part of a list (e.g., starting with *, -, •, numbers like 1., or letters like a.). Preserve these as separate lines. For all other lines, merge them if they belong to the same paragraph by replacing the single newline with a space. DO NOT change, add, or delete any words. Output only the raw, corrected text.";
         let cropper = null;
         let currentStream = null;
 
