@@ -274,7 +274,6 @@
         const scanOverlay = document.getElementById('scan-overlay');
         // PENAMBAHAN: Inisialisasi tombol "Rapikan Teks"
         const tidyTextBtn = document.getElementById('tidy-text-btn');
-		const systemPrompt = "You are a text formatting expert. Your only task is to intelligently merge lines into proper paragraphs. CRITICAL RULE: DO NOT merge lines that appear to be part of a list (e.g., starting with *, -, •, numbers like 1., or letters like a.). Preserve these as separate lines. For all other lines, merge them if they belong to the same paragraph by replacing the single newline with a space. DO NOT change, add, or delete any words. Output only the raw, corrected text.";
         let cropper = null;
         let currentStream = null;
 
@@ -460,7 +459,7 @@
                 </svg> Merapikan...`;
             tidyTextBtn.disabled = true;
 
-            const systemPrompt = "You are a text formatting expert. Your only task is to intelligently merge lines into proper paragraphs. DO NOT change, add, or delete any words. Only replace unnecessary line breaks with a space. Preserve intentional paragraph breaks (like double newlines). Output only the raw, corrected text.";
+            const systemPrompt = "You are a text formatting expert. Your only task is to intelligently merge lines into proper paragraphs. CRITICAL RULE: DO NOT merge lines that appear to be part of a list (e.g., starting with *, -, •, numbers like 1., or letters like a.). Preserve these as separate lines. For all other lines, merge them if they belong to the same paragraph by replacing the single newline with a space. DO NOT change, add, or delete any words. Output only the raw, corrected text.";
             
             try {
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
