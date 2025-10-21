@@ -581,11 +581,10 @@
 
         function setUIState(state) {
             const isResultVisible = state === 'result' || state === 'tidied';
-            outputPlaceholder.classList.toggle('hidden', state === 'loading' || state === 'result');
-            ocrResult.style.display = (state === 'result') ? 'block' : 'none';
-            copyTextBtn.disabled = (state !== 'result');
-            // PENAMBAHAN: Tombol "Rapikan Teks" juga diaktifkan/dinonaktifkan
-            tidyTextBtn.disabled = (state !== 'result');
+            outputPlaceholder.style.display = isResultVisible ? 'none' : 'block';
+            ocrResult.style.display = isResultVisible ? 'block' : 'none';
+            copyTextBtn.disabled = !isResultVisible;
+            tidyTextBtn.disabled = !isResultVisible;
             revertBtn.classList.toggle('hidden', state !== 'tidied');
             tidyTextBtn.classList.toggle('hidden', state === 'tidied');
         }
