@@ -527,6 +527,8 @@
         const scanOverlay = document.getElementById('scan-overlay');
         // PENAMBAHAN: Inisialisasi tombol "Rapikan Teks"
         const tidyTextBtn = document.getElementById('tidy-text-btn');
+        const revertBtn = document.getElementById('revert-btn');
+        let originalOcrText = '';
         let cropper = null;
         let currentStream = null;
 
@@ -578,11 +580,14 @@
         });
 
         function setUIState(state) {
+            const isResultVisible = state === 'result' || state === 'tidied';
             outputPlaceholder.classList.toggle('hidden', state === 'loading' || state === 'result');
             ocrResult.style.display = (state === 'result') ? 'block' : 'none';
             copyTextBtn.disabled = (state !== 'result');
             // PENAMBAHAN: Tombol "Rapikan Teks" juga diaktifkan/dinonaktifkan
             tidyTextBtn.disabled = (state !== 'result');
+            revertBtn.classList.toggle('hidden', state !== 'tidied');
+            tidyTextBtn.classList.toggle('hidden', state === 'tidied');
         }
 
         function renderMixedLanguageText(container, text) {
@@ -674,6 +679,7 @@
                 const result = await response.json();
                 const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (extractedText) {
+                    originalOcrText = extractedText;
                     renderMixedLanguageText(ocrResult, extractedText);
                     showSnackbar('Teks berhasil diekstrak!');
                     setUIState('result');
@@ -725,8 +731,9 @@
                 const tidiedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
                 if (tidiedText) {
-                    renderMixedLanguageText(ocrResult, tidiedText);
+                    renderMixedLanguageText(ocrResult, tidiedText, true);
                     showSnackbar("Teks berhasil dirapikan!");
+                    setUIState('tidied')
                 } else {
                     throw new Error("Gagal mendapatkan hasil dari AI.");
                 }
@@ -766,6 +773,13 @@
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             applyTheme(savedTheme); applyDeviceView(0); loadApiKey(); setUIState('idle');
+        });
+        revertBtn.addEventListener('click', () => {
+            if (originalOcrText) {
+                renderMixedLanguageText(ocrResult, originalOcrText, false);
+                showSnackbar("Teks dikembalikan ke versi asli.");
+                setUIState('result');
+            }
         });
     </script>
 </body>
