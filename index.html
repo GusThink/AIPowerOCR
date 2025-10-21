@@ -235,7 +235,26 @@
             outline: 2px solid var(--accent-color);
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(var(--accent-color-rgb, 34, 211, 238), 0.3);
-        }
+
+            .paragraph {
+                direction: ltr;
+                text-align: left;
+            }
+
+            .paragraph.rtl {
+                direction: rtl;
+                text-align: right;
+            }
+
+            .paragraph-ltr-justified {
+                direction: ltr;
+                text-align: justify;
+            }
+
+            .paragraph-rtl-justified {
+                direction: rtl;
+                text-align: justify;
+            }
     </style>
 </head>
 
@@ -598,9 +617,9 @@
                 p.textContent = paragraphText || '\u00A0';
                 const isArabic = /^[\u0600-\u06FF]/.test(paragraphText.trim());
                 if (isArabic) {
-                    p.className = 'font-naskh text-right'; p.style.direction = 'rtl';
+                    p.className = 'font-naskh ' + (isTidied ? 'paragraph-rtl-justified' : 'paragraph-rtl');
                 } else {
-                    p.className = 'font-sans text-left'; p.style.direction = 'ltr';
+                    p.className = 'font-sans ' + (isTidied ? 'paragraph-ltr-justified' : 'paragraph-ltr');
                 }
                 container.appendChild(p);
             });
