@@ -590,11 +590,9 @@
                     p.className = 'font-naskh text-right'; p.style.direction = 'rtl';
                 } else {
                     p.className = 'font-sans text-left'; p.style.direction = 'ltr';
-                    if (isTidied) {
-                        p.style.textAlign = 'justify';
-                    }
-                    container.appendChild(p);
-                });
+                }
+                container.appendChild(p);
+            });
         }
 
         async function openCamera() {
