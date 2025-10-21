@@ -383,31 +383,38 @@
                     <div class="p-4 flex justify-between items-center border-b border-custom">
                         <h2 class="text-lg font-bold text-accent">Hasil Ekstraksi</h2>
                         <div class="flex items-center gap-2">
-                            <button id="tidy-text-btn"
-                                class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled title="Rapikan Paragraf Otomatis">
+                            <button id="revert-btn"
+                                class="hidden flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors"
+                                title="Kembalikan ke Teks Asli">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                     stroke-linejoin="round">
-                                    <path
-                                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
-                                    </path>
-                                    <line x1="12" y1="9" x2="12" y2="13"></line>
-                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                    <polyline points="1 4 1 10 7 10"></polyline>
+                                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                    <path d="M3 3v5h5"></path>
                                 </svg>
-                                Rapikan
-                            </button>
-                            <button id="copy-text-btn"
-                                class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled title="Salin Teks">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                </svg>
-                                Salin
-                            </button>
+                                Asli
+                                <button id="tidy-text-btn"
+                                    class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled title="Rapikan Paragraf Otomatis">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewbox="0 0 20 20"
+                                        fill="currentColor">
+                                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z">
+                                        </path>
+                                    </svg>
+                                    Rapikan
+                                </button>
+                                <button id="copy-text-btn"
+                                    class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled title="Salin Teks">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                    Salin
+                                </button>
                         </div>
                     </div>
                     <div id="output-container" class="p-4 min-h-[150px]">
