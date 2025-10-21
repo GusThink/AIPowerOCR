@@ -415,7 +415,33 @@
                     reader.onerror = error => reject(error);
                 });
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                const payload = { contents: [{ parts: [{ text: "Extract text from this image. Provide only the extracted text." }, { inlineData: { mimeType: file.type, data: base64Data } }] }] };
+                const payload = { contents: [{ parts: [{ text: "Extract text from this image. Provide only the extracted text. ABSOLUTE RULES:
+
+1. **Core Task:** Extract text from images VISUALLY and LITERALLY. You are a photocopier, not an interpreter.
+
+2. **Total Accuracy:** Copy every character, punctuation mark, and harakat (for Arabic text) exactly as it appears. DO NOT alter, correct, or omit anything.
+
+3. **Language:** Supports both Indonesian and Arabic. If mixed, maintain the original order and layout.
+
+4. **Broken Text:** For completely illegible sections, use the placeholder \`[illegible]\`.
+
+5. **Layout:** Maintain paragraph and line breaks whenever possible. If text in an image continues within a paragraph, DO NOT break it into new paragraphs in the output. If there are multiple images, combine the text into a coherent and logical whole.
+
+SPECIFIC RULES OF ISLAMIC CALLIGRAPHY (THE MOST CRUCIAL):
+
+- **Your task is to copy the ARABIC TEXT from the calligraphy symbols, not replace them.**
+
+- If you see the word "Allah" followed by the calligraphy "ﷻ" or "جَلَّ جَلَالُهُ", your result should be "Allah ﷻ" or "Allah جَلَّ جَلَالُهُ". NEVER replace it with "Allah ﷺ".
+
+- If you see the name "Muhammad" followed by the calligraphy "ﷺ", your result should be "Muhammad ﷺ".
+
+- If you see the name of a Companion (e.g., "Abu Bakr", "An-Nu'man ibn Bashir") followed by the calligraphy "رضي الله عنه" or "رضي الله عنهما", your result should be "Abu Bakr رضي الله عنه" or "An-Nu'man ibn Bashir رضي الله عنهما".
+
+- **THE MAJOR FAILURE** is if you make a contextual interpretation. For example, changing "رضي الله عنه" to "ﷺ", or vice versa. DON'T DO THAT. Copy what you see visually.
+
+FINAL OUTPUT FORMAT (ONLY THIS, NO OPENING/CLOSING WORDS):
+
+(The 100% visually accurate scanned text is here)`" }, { inlineData: { mimeType: file.type, data: base64Data } }] }] };
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error.message || `API Error`); }
                 const result = await response.json();
