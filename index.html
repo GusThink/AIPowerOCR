@@ -698,7 +698,7 @@
                 const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (extractedText) {
                     originalOcrText = extractedText;
-                    renderMixedLanguageText(ocrResult, extractedText);
+                    renderMixedLanguageText(ocrResult, extractedText, false);
                     showSnackbar('Teks berhasil diekstrak!');
                     setUIState('result');
                 } else {
