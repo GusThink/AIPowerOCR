@@ -255,6 +255,10 @@
                 direction: rtl;
                 text-align: justify;
             }
+
+            .indented-paragraph {
+                text-indent: 2em;
+            }
     </style>
 </head>
 
@@ -404,36 +408,48 @@
                         <div class="flex items-center gap-2">
                             <button id="revert-btn"
                                 class="hidden flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors"
-                                title="Kembalikan ke Teks Asli">
+                                title="Kembali ke teks asli">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                     stroke-linejoin="round">
-                                    <polyline points="1 4 1 10 7 10"></polyline>
                                     <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
                                     <path d="M3 3v5h5"></path>
                                 </svg>
                                 Asli
-                                <button id="tidy-text-btn"
-                                    class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled title="Rapikan Paragraf Otomatis">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewbox="0 0 20 20"
-                                        fill="currentColor">
-                                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z">
-                                        </path>
-                                    </svg>
-                                    Rapikan
-                                </button>
-                                <button id="copy-text-btn"
-                                    class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    disabled title="Salin Teks">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round">
-                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                    </svg>
-                                    Salin
-                                </button>
+                            </button>
+                            <button id="format-btn"
+                                class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled title="Format Paragraf (Indent & Spasi)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <line x1="21" y1="10" x2="3" y2="10"></line>
+                                    <line x1="21" y1="6" x2="3" y2="6"></line>
+                                    <line x1="21" y1="14" x2="3" y2="14"></line>
+                                    <line x1="21" y1="18" x2="3" y2="18"></line>
+                                </svg>
+                                Format
+                            </button>
+                            <button id="tidy-text-btn"
+                                class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled title="Rapikan Paragraf (AI)">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                                </svg>
+                                Rapikan
+                            </button>
+                            <button id="copy-text-btn"
+                                class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled title="Salin Teks">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                Salin
+                            </button>
                         </div>
                     </div>
                     <div id="output-container" class="p-4 min-h-[150px]">
@@ -547,6 +563,7 @@
         // PENAMBAHAN: Inisialisasi tombol "Rapikan Teks"
         const tidyTextBtn = document.getElementById('tidy-text-btn');
         const revertBtn = document.getElementById('revert-btn');
+        const formatBtn = document.getElementById('format-btn');
         let originalOcrText = '';
         let cropper = null;
         let currentStream = null;
@@ -604,6 +621,7 @@
             ocrResult.style.display = isResultVisible ? 'block' : 'none';
             copyTextBtn.disabled = !isResultVisible;
             tidyTextBtn.disabled = !isResultVisible;
+            formatBtn.disabled = !isResultVisible;
             revertBtn.classList.toggle('hidden', state !== 'tidied');
             tidyTextBtn.classList.toggle('hidden', state === 'tidied');
         }
@@ -630,6 +648,32 @@
 
                 container.appendChild(p);
             });
+        }
+
+        function formatTextClientSide() {
+            const currentText = ocrResult.innerText;
+            if (!currentText) {
+                showSnackbar("Tidak ada teks untuk diformat.");
+                return;
+            }
+            // 1. Pisahkan teks menjadi baris-baris
+            const lines = currentText.split('\n');
+            // 2. Hapus semua baris yang kosong atau hanya berisi spasi
+            const nonEmptyLines = lines.filter(line => line.trim() !== '');
+            // 3. Gabungkan kembali menjadi satu blok teks yang bersih
+            const cleanedText = nonEmptyLines.join('\n');
+            // 4. Hapus semua class formatting sebelumnya dari setiap paragraf
+            ocrResult.querySelectorAll('p').forEach(p => {
+                p.classList.remove('indented-paragraph');
+                p.style.textAlign = ''; // Hapus style inline agar kembali ke default (left/right)
+            });
+            // 5. Render ulang teks yang sudah bersih
+            renderMixedLanguageText(ocrResult, cleanedText, false); // Render tanpa justify
+            // // 6. Tambahkan class indentasi ke setiap paragraf baru
+            ocrResult.querySelectorAll('p').forEach(p => {
+                p.classList.add('indented-paragraph');
+            });
+            showSnackbar("Teks berhasil diformat!");
         }
 
         async function openCamera() {
@@ -793,6 +837,7 @@
         });
         // PENAMBAHAN: Event listener untuk tombol "Rapikan Teks"
         tidyTextBtn.addEventListener('click', tidyUpText);
+        formatBtn.addEventListener('click', formatTextClientSide);
 
         // --- Inisialisasi Aplikasi ---
         document.addEventListener('DOMContentLoaded', () => {
