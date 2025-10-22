@@ -608,19 +608,43 @@
             tidyTextBtn.classList.toggle('hidden', state === 'tidied');
         }
 
-        function renderMixedLanguageText(container, text) {
+        function renderOriginalText(container, text) {
             container.innerHTML = '';
             if (!text || typeof text !== 'string') return;
             const paragraphs = text.split('\n');
             paragraphs.forEach(paragraphText => {
                 const p = document.createElement('p');
                 p.textContent = paragraphText || '\u00A0';
-                const isArabic = /^[\u0600-\u06FF]/.test(paragraphText.trim());
+                const isArabic = /^[\u0600-\u06FF]/.test(paragraphText.trim()
                 if (isArabic) {
-                    p.className = 'font-naskh ' + (isTidied ? 'paragraph-rtl-justified' : 'paragraph-rtl');
+                    p.className = 'font-naskh';
+                    p.style.direction = 'rtl';
+                    p.style.textAlign = 'right';
                 } else {
-                    p.className = 'font-sans ' + (isTidied ? 'paragraph-ltr-justified' : 'paragraph-ltr');
+                    p.className = 'font-sans';
+                    p.style.direction = 'ltr';
+                    p.style.textAlign = 'left';
                 }
+                container.appendChild(p);
+            });
+        }
+
+        function renderTidiedText(container, text) {
+            container.innerHTML = '';
+            if (!text || typeof text !== 'string') return;
+            const paragraphs = text.split('\n');
+            paragraphs.forEach(paragraphText => {
+                const p = document.createElement('p');
+                p.textContent = paragraphText || '\u00A0';
+                const isArabic = /^[\u0600-\u06FF]/.test(paragraphText.trim()
+                if (isArabic) {
+                    p.className = 'font-naskh';
+                    p.style.direction = 'rtl';
+                } else {
+                    p.className = 'font-sans';
+                    p.style.direction = 'ltr';
+                }
+                p.style.textAlign = 'justify';
                 container.appendChild(p);
             });
         }
@@ -698,7 +722,7 @@
                 const extractedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (extractedText) {
                     originalOcrText = extractedText;
-                    renderMixedLanguageText(ocrResult, extractedText, false);
+                    renderMixedLanguageText(ocrResult, extractedText);
                     showSnackbar('Teks berhasil diekstrak!');
                     setUIState('result');
                 } else {
@@ -749,7 +773,7 @@
                 const tidiedText = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
                 if (tidiedText) {
-                    renderMixedLanguageText(ocrResult, tidiedText, true);
+                    renderMixedLanguageText(ocrResult, tidiedText);
                     showSnackbar("Teks berhasil dirapikan!");
                     setUIState('tidied');
                 } else {
@@ -794,7 +818,7 @@
         });
         revertBtn.addEventListener('click', () => {
             if (originalOcrText) {
-                renderMixedLanguageText(ocrResult, originalOcrText, false);
+                renderMixedLanguageText(ocrResult, originalOcrText);
                 showSnackbar("Teks dikembalikan ke versi asli.");
                 setUIState('result');
             }
