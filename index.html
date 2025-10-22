@@ -712,6 +712,23 @@
             };
             reader.readAsDataURL(file);
         }
+        function getTextForCopying() {
+            const paragraphs = ocrResult.querySelectorAll('p');
+            if (paragraphs.length === 0) {
+                return ocrResult.innerText;
+            }
+            const lines = [];
+            paragraphs.forEach(p => {
+                // Cek apakah paragraf ini memiliki gaya indentasi
+                if (p.classList.contains('indented-paragraph')) {
+                    lines.push('\t' + p.textContent);
+                } else {
+                    lines.push(p.textContent);
+                }
+            });
+            return lines.join('\n');
+        }
+
         extractBtn.addEventListener('click', () => {
             if (!cropper) return;
             scanOverlay.classList.remove('hidden');
@@ -828,8 +845,9 @@
             if (imageFile) { event.preventDefault(); loadImageForCropping(imageFile); }
         });
         copyTextBtn.addEventListener('click', () => {
+            const textToCopy = getTextForCopying();
             if (ocrResult.innerText) {
-                navigator.clipboard.writeText(ocrResult.innerText)
+                navigator.clipboard.writeText(textToCopy)
                     .then(() => showSnackbar('Teks berhasil disalin!'))
                     .catch(() => showSnackbar('Gagal menyalin teks.'));
                 applyClickFeedback(copyTextBtn);
