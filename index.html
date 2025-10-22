@@ -608,43 +608,26 @@
             tidyTextBtn.classList.toggle('hidden', state === 'tidied');
         }
 
-        function renderOriginalText(container, text) {
+        function renderMixedLanguageText(container, text, isTidied = false) {
             container.innerHTML = '';
             if (!text || typeof text !== 'string') return;
             const paragraphs = text.split('\n');
             paragraphs.forEach(paragraphText => {
                 const p = document.createElement('p');
                 p.textContent = paragraphText || '\u00A0';
-                const isArabic = /^[\u0600-\u06FF]/.test(paragraphText.trim()
-                if (isArabic) {
-                    p.className = 'font-naskh';
-                    p.style.direction = 'rtl';
-                    p.style.textAlign = 'right';
-                } else {
-                    p.className = 'font-sans';
-                    p.style.direction = 'ltr';
-                    p.style.textAlign = 'left';
-                }
-                container.appendChild(p);
-            });
-        }
 
-        function renderTidiedText(container, text) {
-            container.innerHTML = '';
-            if (!text || typeof text !== 'string') return;
-            const paragraphs = text.split('\n');
-            paragraphs.forEach(paragraphText => {
-                const p = document.createElement('p');
-                p.textContent = paragraphText || '\u00A0';
-                const isArabic = /^[\u0600-\u06FF]/.test(paragraphText.trim()
+                const isArabic = /^[\u0600-\u06FF]/.test(paragraphText.trim());
+
                 if (isArabic) {
                     p.className = 'font-naskh';
                     p.style.direction = 'rtl';
+                    p.style.textAlign = isTidied ? 'justify' : 'right';
                 } else {
                     p.className = 'font-sans';
                     p.style.direction = 'ltr';
+                    p.style.textAlign = isTidied ? 'justify' : 'left';
                 }
-                p.style.textAlign = 'justify';
+
                 container.appendChild(p);
             });
         }
