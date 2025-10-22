@@ -403,54 +403,54 @@
                 </div>
 
                 <div class="bg-secondary rounded-xl shadow-lg border border-custom overflow-hidden">
-                    <div class="p-4 flex justify-between items-center border-b border-custom">
-                        <h2 class="text-lg font-bold text-accent">Hasil Ekstraksi</h2>
-                        <div class="flex items-center gap-2">
-                            <button id="revert-btn"
-                                class="hidden flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors"
-                                title="Kembali ke teks asli">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
-                                    <path d="M3 3v5h5"></path>
-                                </svg>
-                                Asli
-                            </button>
-                            <button id="format-btn"
-                                class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled title="Format Paragraf (Indent & Spasi)">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <line x1="21" y1="10" x2="3" y2="10"></line>
-                                    <line x1="21" y1="6" x2="3" y2="6"></line>
-                                    <line x1="21" y1="14" x2="3" y2="14"></line>
-                                    <line x1="21" y1="18" x2="3" y2="18"></line>
-                                </svg>
-                                Format
-                            </button>
-                            <button id="tidy-text-btn"
-                                class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled title="Rapikan Paragraf (AI)">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-                                </svg>
-                                Rapikan
-                            </button>
-                            <button id="copy-text-btn"
-                                class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled title="Salin Teks">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                </svg>
-                                Salin
-                            </button>
-                        </div>
+                    <div class="p-4 border-b border-custom">
+                        <h2 class="text-lg font-bold text-accent text-center">Hasil Ekstraksi</h2>
+                    </div>
+                    <div class="p-3 flex justify-center items-center gap-2 border-b border-custom flex-wrap">
+                        <button id="revert-btn"
+                            class="hidden flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors"
+                            title="Kembali ke teks asli">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                <path d="M3 3v5h5"></path>
+                            </svg>
+                            Asli
+                        </button>
+                        <button id="format-btn"
+                            class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled title="Format Paragraf (Indent & Spasi)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <line x1="21" y1="10" x2="3" y2="10"></line>
+                                <line x1="21" y1="6" x2="3" y2="6"></line>
+                                <line x1="21" y1="14" x2="3" y2="14"></line>
+                                <line x1="21" y1="18" x2="3" y2="18"></line>
+                            </svg>
+                            Format
+                        </button>
+                        <button id="tidy-text-btn"
+                            class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled title="Rapikan Paragraf (AI)">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                            </svg>
+                            Rapikan
+                        </button>
+                        <button id="copy-text-btn"
+                            class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled title="Salin Teks">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            Salin
+                        </button>
                     </div>
                     <div id="output-container" class="p-4 min-h-[150px]">
                         <p id="output-placeholder" class="text-secondary text-center p-10">Hasil teks akan muncul di
@@ -459,43 +459,43 @@
                             style="display: none;"></div>
                     </div>
                 </div>
-            </div>
 
-            <div id="api-settings-view" class="absolute top-0 left-0 w-full h-full bg-primary z-[55]">
-                <div class="p-4 sm:p-6 h-full flex flex-col">
-                    <div class="flex-shrink-0 flex items-center gap-4 mb-4 pb-4 border-b border-custom">
-                        <button id="back-from-api-settings-btn"
-                            class="p-2 rounded-full hover:bg-tertiary transition-colors" title="Kembali">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
-                            </svg>
-                        </button>
-                        <h2 class="text-lg font-bold text-accent">Pengaturan Kunci API</h2>
-                    </div>
-                    <div id="api-settings-content" class="flex-grow text-secondary text-sm space-y-6">
-                        <p>Kunci API Anda disimpan dengan aman di browser Anda.</p>
-                        <div>
-                            <label for="api-key-input" class="block mb-2 text-sm font-medium text-primary">Kunci API
-                                Google AI</label>
-                            <div class="flex items-end gap-2">
-                                <input type="password" id="api-key-input"
-                                    class="w-full bg-tertiary border border-custom rounded-lg p-3 text-primary focus:ring-2 focus:ring-accent"
-                                    placeholder="AIzaSy...">
-                                <button id="save-api-key-btn"
-                                    class="flex-shrink-0 h-[46px] text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center shadow-lg"
-                                    style="background-image: var(--btn-accent-bg);">Simpan</button>
+                <div id="api-settings-view" class="absolute top-0 left-0 w-full h-full bg-primary z-[55]">
+                    <div class="p-4 sm:p-6 h-full flex flex-col">
+                        <div class="flex-shrink-0 flex items-center gap-4 mb-4 pb-4 border-b border-custom">
+                            <button id="back-from-api-settings-btn"
+                                class="p-2 rounded-full hover:bg-tertiary transition-colors" title="Kembali">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+                            <h2 class="text-lg font-bold text-accent">Pengaturan Kunci API</h2>
+                        </div>
+                        <div id="api-settings-content" class="flex-grow text-secondary text-sm space-y-6">
+                            <p>Kunci API Anda disimpan dengan aman di browser Anda.</p>
+                            <div>
+                                <label for="api-key-input" class="block mb-2 text-sm font-medium text-primary">Kunci API
+                                    Google AI</label>
+                                <div class="flex items-end gap-2">
+                                    <input type="password" id="api-key-input"
+                                        class="w-full bg-tertiary border border-custom rounded-lg p-3 text-primary focus:ring-2 focus:ring-accent"
+                                        placeholder="AIzaSy...">
+                                    <button id="save-api-key-btn"
+                                        class="flex-shrink-0 h-[46px] text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center shadow-lg"
+                                        style="background-image: var(--btn-accent-bg);">Simpan</button>
+                                </div>
+                                <p id="api-key-status" class="text-xs text-secondary mt-2">Masukkan kunci API pribadi
+                                    Anda.
+                                </p>
+                                <a href="https://aistudio.google.com/app/apikey" target="_blank"
+                                    class="mt-2 inline-block text-xs text-accent hover:underline">Belum punya kunci?
+                                    Dapatkan di sini →</a>
                             </div>
-                            <p id="api-key-status" class="text-xs text-secondary mt-2">Masukkan kunci API pribadi Anda.
-                            </p>
-                            <a href="https://aistudio.google.com/app/apikey" target="_blank"
-                                class="mt-2 inline-block text-xs text-accent hover:underline">Belum punya kunci?
-                                Dapatkan di sini →</a>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
     </main>
 
     <div id="snackbar"></div>
