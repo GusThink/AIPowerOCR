@@ -459,7 +459,141 @@
                             style="display: none;"></div>
                     </div>
                 </div>
-
+                <div class="mt-4">
+                    <button id="add-to-material-btn"
+                        class="w-full flex items-center justify-center gap-2 py-3 px-3 text-sm font-semibold bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled title="Tambahkan hasil ekstraksi ke kolom materi di bawah">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Tambahkan ke Materi
+                    </button>
+                </div>
+                <div class="mt-6 bg-secondary rounded-xl shadow-lg border border-custom overflow-hidden">
+                    <div class="p-4 flex justify-between items-center border-b border-custom">
+                        <h2 class="text-lg font-bold text-accent">Materi Terkumpul</h2>
+                        <button id="clear-material-btn"
+                            class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-red-400 hover:bg-red-500/20 rounded-full transition-colors"
+                            title="Kosongkan Kolom Materi">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path
+                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                </path>
+                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                            </svg>
+                            Kosongkan
+                        </button>
+                    </div>
+                    <div class="p-4">
+                        <textarea id="material-textarea"
+                            class="w-full bg-tertiary border border-custom rounded-lg p-3 text-primary text-sm min-h-[150px] focus:ring-2 focus:ring-accent"
+                            placeholder="Teks materi yang ditambahkan dari hasil ekstraksi akan muncul di sini..."></textarea>
+                    </div>
+                </div>
+                <div class="mt-6 bg-secondary rounded-xl shadow-lg border border-custom overflow-hidden">
+                    <div class="p-4 border-b border-custom">
+                        <h2 class="text-lg font-bold text-accent text-center">Generate Soal Otomatis</h2>
+                    </div>
+                    <div class="p-4 space-y-4">
+                        <div>
+                            <label for="education-level" class="block mb-2 text-sm font-medium text-primary">Jenjang
+                                Pendidikan</label>
+                            <select id="education-level"
+                                class="w-full bg-tertiary border border-custom text-primary text-sm rounded-lg focus:ring-accent focus:border-accent p-2.5">
+                                <option selected value="">Pilih Jenjang</option>
+                                <option value="SD">SD/MI</option>
+                                <option value="SMP">SMP/MTs</option>
+                                <option value="SMA">SMA/MA/SMK</option>
+                                <option value="Perguruan Tinggi">Perguruan Tinggi</option>
+                                <option value="Umum">Umum</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="question-type" class="block mb-2 text-sm font-medium text-primary">Jenis
+                                Soal</label>
+                            <select id="question-type"
+                                class="w-full bg-tertiary border border-custom text-primary text-sm rounded-lg focus:ring-accent focus:border-accent p-2.5">
+                                <option selected value="">Pilih Jenis Soal</option>
+                                <option value="pilihan_ganda">Pilihan Ganda</option>
+                                <option value="esai_singkat">Esai Singkat</option>
+                                <option value="benar_salah">Benar/Salah</option>
+                                <option value="menjodohkan">Menjodohkan</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="num-questions" class="block mb-2 text-sm font-medium text-primary">Jumlah
+                                Soal</label>
+                            <input type="number" id="num-questions" value="5" min="1" max="10"
+                                class="w-full bg-tertiary border border-custom text-primary text-sm rounded-lg focus:ring-accent focus:border-accent p-2.5">
+                        </div>
+                        <button id="generate-questions-btn"
+                            class="w-full text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 shadow-lg"
+                            style="background-image: var(--btn-accent-bg);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path
+                                    d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-1.1 5.4 2.8 4.4 6.3-2.2-9.1 7.4-2.8-4.4-6.3 2.2z">
+                                </path>
+                                <path d="M12 22a10 10 0 0 0 10-10"></path>
+                            </svg>
+                            Generate Soal
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-6 bg-secondary rounded-xl shadow-lg border border-custom overflow-hidden">
+                    <div class="p-4 flex justify-between items-center border-b border-custom">
+                        <h2 class="text-lg font-bold text-accent">Hasil Generate Soal</h2>
+                        <div class="flex items-center gap-2">
+                            <button id="copy-questions-btn"
+                                class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled title="Salin Soal">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                Salin Soal
+                            </button>
+                            <button id="copy-answers-btn"
+                                class="flex items-center gap-2 py-1 px-3 text-xs font-semibold bg-tertiary text-primary rounded-full hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled title="Salin Kunci Jawaban">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M15.5 8.5 19 12l-3.5 3.5"></path>
+                                    <path d="m8.5 8.5-3.5 3.5 3.5 3.5"></path>
+                                    <path d="M14.5 18H9.5a4.5 4.5 0 0 1 0-9h5"></path>
+                                </svg>
+                                Salin Jawaban
+                            </button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
+                        <div class="p-4 border-b md:border-b-0 md:border-r border-custom min-h-[200px]">
+                            <h3 class="font-semibold text-center mb-3 text-primary uppercase tracking-wider">Soal</h3>
+                            <div id="generated-questions" class="text-sm space-y-4">
+                                <p class="text-secondary text-center italic">Soal yang digenerate akan muncul di sini.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="p-4 min-h-[200px]">
+                            <h3 class="font-semibold text-center mb-3 text-primary uppercase tracking-wider">Kunci
+                                Jawaban</h3>
+                            <div id="generated-answers" class="text-sm space-y-4">
+                                <p class="text-secondary text-center italic">Kunci jawaban akan muncul di sini.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="api-settings-view" class="absolute top-0 left-0 w-full h-full bg-primary z-[55]">
                     <div class="p-4 sm:p-6 h-full flex flex-col">
                         <div class="flex-shrink-0 flex items-center gap-4 mb-4 pb-4 border-b border-custom">
@@ -560,10 +694,20 @@
         const extractBtn = document.getElementById('extract-btn');
         const resetBtn = document.getElementById('reset-btn');
         const scanOverlay = document.getElementById('scan-overlay');
-        // PENAMBAHAN: Inisialisasi tombol "Rapikan Teks"
         const tidyTextBtn = document.getElementById('tidy-text-btn');
         const revertBtn = document.getElementById('revert-btn');
         const formatBtn = document.getElementById('format-btn');
+        const addToMaterialBtn = document.getElementById('add-to-material-btn');
+        const materialTextarea = document.getElementById('material-textarea');
+        const clearMaterialBtn = document.getElementById('clear-material-btn');
+        const educationLevelSelect = document.getElementById('education-level');
+        const questionTypeSelect = document.getElementById('question-type');
+        const numQuestionsInput = document.getElementById('num-questions');
+        const generateQuestionsBtn = document.getElementById('generate-questions-btn');
+        const generatedQuestionsDiv = document.getElementById('generated-questions');
+        const generatedAnswersDiv = document.getElementById('generated-answers');
+        const copyQuestionsBtn = document.getElementById('copy-questions-btn');
+        const copyAnswersBtn = document.getElementById('copy-answers-btn');
         let originalOcrText = '';
         let cropper = null;
         let currentStream = null;
