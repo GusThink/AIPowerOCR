@@ -766,8 +766,13 @@
             copyTextBtn.disabled = !isResultVisible;
             tidyTextBtn.disabled = !isResultVisible;
             formatBtn.disabled = !isResultVisible;
+            addToMaterialBtn.disabled = !isResultVisible;
             revertBtn.classList.toggle('hidden', state !== 'tidied');
             tidyTextBtn.classList.toggle('hidden', state === 'tidied');
+            if (state === 'idle' || state === 'loading') {
+                copyQuestionsBtn.disabled = true;
+                copyAnswersBtn.disabled = true;
+            }
         }
 
         function renderMixedLanguageText(container, text, isTidied = false) {
@@ -1012,6 +1017,73 @@
                 showSnackbar("Teks dikembalikan ke versi asli.");
                 setUIState('result');
             }
+        });
+        addToMaterialBtn.addEventListener('click', () => {
+            const ocrText = ocrResult.innerText.trim();
+            if (ocrText) {
+                const currentMaterial = materialTextarea.value.trim();
+                // Tambahkan spasi atau baris baru jika sudah ada materi sebelumnya
+                materialTextarea.value = currentMaterial ? currentMaterial + '\n\n' + ocrText : ocrText;
+                showSnackbar("Teks ditambahkan ke kolom materi.");
+                // Gulir ke bawah textarea materi
+                materialTextarea.scrollTop = materialTextarea.scrollHeight;
+            } else {
+                showSnackbar("Tidak ada teks di hasil ekstraksi untuk ditambahkan.");
+            }
+        });
+        clearMaterialBtn.addEventListener('click', () => {
+            if (materialTextarea.value.trim()) {
+                materialTextarea.value = '';
+                showSnackbar("Kolom materi dikosongkan.");
+            }
+        });
+        // Event Listener Awal untuk Tombol "Generate Soal"
+        generateQuestionsBtn.addEventListener('click', () => {
+            const material = materialTextarea.value.trim();
+            const level = educationLevelSelect.value;
+            const type = questionTypeSelect.value;
+            const count = numQuestionsInput.value;
+            // Validasi Input
+            if (!material) {
+                showSnackbar("Kolom materi masih kosong.");
+                materialTextarea.focus();
+                return;
+            }
+            if (!level) {
+                showSnackbar("Silakan pilih jenjang pendidikan.");
+                educationLevelSelect.focus();
+                return;
+            }
+            if (!type) {
+                showSnackbar("Silakan pilih jenis soal.");
+                questionTypeSelect.focus();
+                return;
+            }
+            // --- (Tahap Berikutnya: Siapkan Prompt & Panggil AI di sini) ---
+            console.log("Materi:", material);
+            console.log("Jenjang:", level);
+            console.log("Jenis:", type);
+            console.log("Jumlah:", count);
+            // Tampilkan pesan loading sementara (akan diganti API call nanti)
+            generatedQuestionsDiv.innerHTML = '<p class="text-secondary text-center italic">Membuat soal...</p>';
+            generatedAnswersDiv.innerHTML = '<p class="text-secondary text-center italic">Membuat kunci jawaban...</p>';
+            copyQuestionsBtn.disabled = true; // Nonaktifkan tombol salin saat loading
+            copyAnswersBtn.disabled = true;
+            // Simulasi loading (ganti dengan API call nanti)
+            setTimeout(() => {
+                showSnackbar("Fitur Generate Soal belum diimplementasikan sepenuhnya.");
+                generatedQuestionsDiv.innerHTML = '<p class="text-secondary text-center italic">Soal akan muncul di sini.</p>';
+                generatedAnswersDiv.innerHTML = '<p class="text-secondary text-center italic">Kunci jawaban akan muncul di sini.</p>';
+            }, 2000);
+        });
+        // Event Listener Awal untuk Tombol Salin Soal & Jawaban (belum ada fungsi copy)
+        copyQuestionsBtn.addEventListener('click', () => {
+            showSnackbar("Fungsi Salin Soal belum siap.");
+            // Logika menyalin generatedQuestionsDiv.innerText akan ditambahkan nanti
+        });
+        copyAnswersBtn.addEventListener('click', () => {
+            showSnackbar("Fungsi Salin Jawaban belum siap.");
+            // Logika menyalin generatedAnswersDiv.innerText akan ditambahkan nanti
         });
     </script>
 </body>
