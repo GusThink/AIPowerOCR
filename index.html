@@ -1115,16 +1115,19 @@
             copyQuestionsBtn.disabled = true;
             copyAnswersBtn.disabled = true;
             generateQuestionsBtn.disabled = true; // Nonaktifkan tombol generate selama proses
-            // Siapkan deskripsi jenis soal untuk prompt
-            // let typeDescription = "";
+            // --- PERBAIKAN: Deklarasi dan switch statement yang hilang ditambahkan di sini ---
+            let typeDescription = "";
             switch (type) {
                 case 'pilihan_ganda': typeDescription = "Pilihan Ganda (satu jawaban benar)"; break;
                 case 'esai_singkat': typeDescription = "Esai Singkat"; break;
                 case 'benar_salah': typeDescription = "Benar/Salah"; break;
                 case 'menjodohkan': typeDescription = "Menjodohkan"; break;
+                // Tambahkan case lain jika ada jenis soal baru di masa depan
+                default: typeDescription = type; // Fallback jika tidak ada deskripsi khusus
             }
-            // Bangun prompt final
-            const finalPrompt = `Berdasarkan materi:\n---\n${material}\n---\nBuat ${count} soal ${typeDescription} untuk jenjang ${level}.`;
+            // --- AKHIR PERBAIKAN ---
+            // Bangun prompt final (sekarang typeDescription sudah ada)
+            const finalPrompt = `Anda adalah seorang ahli pembuat soal evaluasi yang cerdas dan memahami konteks pendidikan di Indonesia, termasuk pengetahuan umum dan studi Islam sesuai pemahaman Sahabat dan manhaj Salaf. Tugas Anda adalah membuat soal berdasarkan materi berikut: --- ${material} --- Buatlah soal dengan kriteria berikut: 1.  **Jenjang Pendidikan**: ${level} 2.  **Jenis Soal**: ${typeDescription} 3.  **Jumlah Soal**: ${count} 4.  **Kualitas Soal**: Soal harus mencerminkan pemahaman mendalam terhadap materi, bukan sekadar hafalan. Untuk pilihan ganda, buat pengecoh yang relevan dan masuk akal. Untuk esai/uraian, pastikan jawabannya definitif berdasarkan materi. Gaya bahasa harus alami seperti buatan manusia. 5.  **Format Output (SANGAT PENTING)**: Kembalikan jawaban HANYA dalam format objek JSON tunggal yang valid, tanpa teks pembuka/penutup atau markdown. Strukturnya harus tepat sesuai jenis soal yang diminta: * **Pilihan Ganda**: {"soal": [{"pertanyaan": "...", "pilihan": ["A. ...", "B. ...", "C. ...", "D. ..."], "jawaban_benar": "A"}]} * **Esai Singkat**: {"soal": [{"pertanyaan": "...", "jawaban_singkat": "..."}]} * **Benar/Salah**: {"soal": [{"pernyataan": "...", "jawaban": true}]} (gunakan true untuk Benar, false untuk Salah) * **Menjodohkan**: {"soal": {"premis": [{"id": 1, "teks": "..."}, ...], "respons": [{"id": "A", "teks": "..."}, ...], "kunci_jawaban": [{"premis_id": 1, "respons_id": "A"}, ...]}} (Pastikan jumlah premis dan respons sesuai ${count}) Pastikan struktur JSON persis seperti contoh di atas sesuai jenis soal yang diminta.`;
             try {
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
                 const payload = { contents: [{ parts: [{ text: finalPrompt }] }] };
@@ -1136,17 +1139,16 @@
                 const result = await response.json();
                 if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
                     const rawJsonText = result.candidates[0].content.parts[0].text;
-                    console.log("Raw API Response:", rawJsonText);
-                    // Membersihkan JSON dari markdown code block jika ada
+                    console.log("Raw API Response:", rawJsonText); // Tetap pertahankan ini untuk debugging jika perlu
                     const cleanJsonString = rawJsonText.replace(/```json|```/g, '').trim();
                     const data = JSON.parse(cleanJsonString);
-                    // Bersihkan area hasil sebelum menampilkan yang baru
                     generatedQuestionsDiv.innerHTML = '';
                     generatedAnswersDiv.innerHTML = '';
-                    // Panggil fungsi display yang sesuai
-                    displayGeneratedQuestions(data.soal, type); // Kirim jenis soal juga
+
+                    displayGeneratedQuestions(data.soal, type);
+                    displayGeneratedAnswers(data.jawaban, type);
                     showSnackbar("Soal berhasil dibuat!");
-                    copyQuestionsBtn.disabled = false; // Aktifkan tombol salin
+                    copyQuestionsBtn.disabled = false;
                     copyAnswersBtn.disabled = false;
                 } else {
                     let errorMessage = "Respons dari API tidak valid atau kosong.";
@@ -1161,7 +1163,7 @@
                 generatedQuestionsDiv.innerHTML = `<p class="text-red-500 text-center italic">Terjadi kesalahan: ${error.message}</p>`;
                 generatedAnswersDiv.innerHTML = `<p class="text-red-500 text-center italic">Gagal memuat kunci jawaban.</p>`;
             } finally {
-                generateQuestionsBtn.disabled = false; // Aktifkan kembali tombol generate
+                generateQuestionsBtn.disabled = false;
             }
         });
         // Event Listener Awal untuk Tombol Salin Soal & Jawaban (belum ada fungsi copy)
