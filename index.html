@@ -1144,9 +1144,7 @@
                     const data = JSON.parse(cleanJsonString);
                     generatedQuestionsDiv.innerHTML = '';
                     generatedAnswersDiv.innerHTML = '';
-
                     displayGeneratedQuestions(data.soal, type);
-                    displayGeneratedAnswers(data.jawaban, type);
                     showSnackbar("Soal berhasil dibuat!");
                     copyQuestionsBtn.disabled = false;
                     copyAnswersBtn.disabled = false;
