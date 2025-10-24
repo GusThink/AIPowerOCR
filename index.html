@@ -980,6 +980,66 @@
             }
         }
 
+        function displayGeneratedQuestions(data, type) {
+            let questionHtml = '<ol class="list-decimal list-inside space-y-4">';
+            let answerHtml = '<ol class="list-decimal list-inside space-y-2">';
+            let nomorSoal = 1; // Penghitung lokal untuk fungsi ini
+            try { // Tambahkan try-catch untuk parsing yang lebih aman
+                switch (type) {
+                    case 'pilihan_ganda':
+                        data.forEach(item => {
+                            questionHtml += `<li><div>${item.pertanyaan}</div><ul class="list-none pl-6 space-y-1 mt-1">`;
+                            item.pilihan.forEach(p => questionHtml += `<li>${p}</li>`);
+                            questionHtml += `</ul></li>`;
+                            answerHtml += `<li>${item.jawaban_benar}</li>`;
+                        });
+                        break;
+                    case 'esai_singkat':
+                        data.forEach(item => {
+                            questionHtml += `<li>${item.pertanyaan}</li>`;
+                            answerHtml += `<li>${item.jawaban_singkat}</li>`;
+                        });
+                        break;
+                    case 'benar_salah':
+                        data.forEach(item => {
+                            questionHtml += `<li>${item.pernyataan} (Benar/Salah)</li>`;
+                            answerHtml += `<li>${item.jawaban ? 'Benar' : 'Salah'}</li>`;
+                        });
+                        break;
+                    case 'menjodohkan':
+                        questionHtml += `<li><div>Jodohkan Kolom A dengan Kolom B!</div>`;
+                        questionHtml += `<div class="grid grid-cols-2 gap-4 mt-2">`;
+                        // Kolom A (Premis)
+                        questionHtml += `<div class="space-y-1"><strong class="block">Kolom A</strong>`;
+                        data.premis.forEach(p => questionHtml += `<div>${p.id}. ${p.teks}</div>`);
+                        questionHtml += `</div>`;
+                        // Kolom B (Respons)
+                        questionHtml += `<div class="space-y-1"><strong class="block">Kolom B</strong>`;
+                        data.respons.forEach(r => questionHtml += `<div>${r.id}. ${r.teks}</div>`);
+                        questionHtml += `</div></div></li>`; // Tutup grid dan list item
+                        // Kunci Jawaban Menjodohkan
+                        answerHtml += `<li>`;
+                        data.kunci_jawaban.forEach((k, index) => {
+                            answerHtml += `${k.premis_id} - ${k.respons_id}${index < data.kunci_jawaban.length - 1 ? ', ' : ''}`;
+                        });
+                        answerHtml += `</li>`;
+                        break;
+                    default:
+                        questionHtml = '<p class="text-secondary text-center italic">Jenis soal tidak dikenal.</p>';
+                        answerHtml = '<p class="text-secondary text-center italic">Tidak ada kunci jawaban.</p>';
+                }
+            } catch (parseError) {
+                console.error("Error parsing AI response:", parseError);
+                showSnackbar("Format respons dari AI tidak sesuai. Gagal menampilkan soal.");
+                questionHtml = `<p class="text-red-500 text-center italic">Gagal menampilkan soal. Format respons AI tidak valid.</p>`;
+                answerHtml = `<p class="text-red-500 text-center italic">Gagal menampilkan kunci jawaban.</p>`;
+            }
+            questionHtml += '</ol>';
+            answerHtml += '</ol>';
+            generatedQuestionsDiv.innerHTML = questionHtml;
+            generatedAnswersDiv.innerHTML = answerHtml;
+        }
+
         // --- Event Listeners ---
         const uploadImageBtn = document.getElementById('upload-image-btn');
         const imageUploadInput = document.getElementById('image-upload-input');
@@ -1038,52 +1098,91 @@
             }
         });
         // Event Listener Awal untuk Tombol "Generate Soal"
-        generateQuestionsBtn.addEventListener('click', () => {
+        generateQuestionsBtn.addEventListener('click', async () => {
             const material = materialTextarea.value.trim();
             const level = educationLevelSelect.value;
             const type = questionTypeSelect.value;
             const count = numQuestionsInput.value;
             // Validasi Input
-            if (!material) {
-                showSnackbar("Kolom materi masih kosong.");
-                materialTextarea.focus();
-                return;
-            }
-            if (!level) {
-                showSnackbar("Silakan pilih jenjang pendidikan.");
-                educationLevelSelect.focus();
-                return;
-            }
-            if (!type) {
-                showSnackbar("Silakan pilih jenis soal.");
-                questionTypeSelect.focus();
-                return;
-            }
-            // --- (Tahap Berikutnya: Siapkan Prompt & Panggil AI di sini) ---
-            console.log("Materi:", material);
-            console.log("Jenjang:", level);
-            console.log("Jenis:", type);
-            console.log("Jumlah:", count);
-            // Tampilkan pesan loading sementara (akan diganti API call nanti)
-            generatedQuestionsDiv.innerHTML = '<p class="text-secondary text-center italic">Membuat soal...</p>';
-            generatedAnswersDiv.innerHTML = '<p class="text-secondary text-center italic">Membuat kunci jawaban...</p>';
-            copyQuestionsBtn.disabled = true; // Nonaktifkan tombol salin saat loading
+            if (!material) { showSnackbar("Kolom materi masih kosong."); materialTextarea.focus(); return; }
+            if (!level) { showSnackbar("Silakan pilih jenjang pendidikan."); educationLevelSelect.focus(); return; }
+            if (!type) { showSnackbar("Silakan pilih jenis soal."); questionTypeSelect.focus(); return; }
+            const apiKey = localStorage.getItem('user_google_api_key');
+            if (!apiKey) { showSnackbar('Kunci API belum diatur.'); menuApiSettings.click(); return; }
+            // Tampilkan loading
+            generatedQuestionsDiv.innerHTML = `<div class="flex justify-center items-center py-10"><svg class="animate-spin h-8 w-8 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>`;
+            generatedAnswersDiv.innerHTML = `<div class="flex justify-center items-center py-10"><svg class="animate-spin h-8 w-8 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>`;
+            copyQuestionsBtn.disabled = true;
             copyAnswersBtn.disabled = true;
-            // Simulasi loading (ganti dengan API call nanti)
-            setTimeout(() => {
-                showSnackbar("Fitur Generate Soal belum diimplementasikan sepenuhnya.");
-                generatedQuestionsDiv.innerHTML = '<p class="text-secondary text-center italic">Soal akan muncul di sini.</p>';
-                generatedAnswersDiv.innerHTML = '<p class="text-secondary text-center italic">Kunci jawaban akan muncul di sini.</p>';
-            }, 2000);
+            generateQuestionsBtn.disabled = true; // Nonaktifkan tombol generate selama proses
+            // Siapkan deskripsi jenis soal untuk prompt
+            // let typeDescription = "";
+            switch (type) {
+                case 'pilihan_ganda': typeDescription = "Pilihan Ganda (satu jawaban benar)"; break;
+                case 'esai_singkat': typeDescription = "Esai Singkat"; break;
+                case 'benar_salah': typeDescription = "Benar/Salah"; break;
+                case 'menjodohkan': typeDescription = "Menjodohkan"; break;
+            }
+            // Bangun prompt final
+            const finalPrompt = `Anda adalah seorang ahli pembuat soal evaluasi yang cerdas dan memahami konteks pendidikan di Indonesia, termasuk pengetahuan umum dan studi Islam sesuai pemahaman Sahabat dan manhaj Salaf. Tugas Anda adalah membuat soal berdasarkan materi berikut: ${material} Buatlah soal dengan kriteria berikut: 1.  **Jenjang Pendidikan**: ${level} 2.  **Jenis Soal**: ${typeDescription} 3.  **Jumlah Soal**: ${count} 4.  **Kualitas Soal**: Soal harus mencerminkan pemahaman mendalam terhadap materi, bukan sekadar hafalan. Untuk pilihan ganda, buat pengecoh yang relevan dan masuk akal. Untuk esai/uraian, pastikan jawabannya definitif berdasarkan materi. Gaya bahasa harus alami seperti buatan manusia. 5.  **Format Output (SANGAT PENTING)**: Kembalikan jawaban HANYA dalam format objek JSON tunggal yang valid, tanpa teks pembuka/penutup atau markdown. Strukturnya harus tepat sesuai jenis soal yang diminta: * **Pilihan Ganda**: {"soal": [{"pertanyaan": "...", "pilihan": ["A. ...", "B. ...", "C. ...", "D. ..."], "jawaban_benar": "A"}]} * **Esai Singkat**: {"soal": [{"pertanyaan": "...", "jawaban_singkat": "..."}]} * **Benar/Salah**: {"soal": [{"pernyataan": "...", "jawaban": true}]} (gunakan true untuk Benar, false untuk Salah) * **Menjodohkan**: {"soal": {"premis": [{"id": 1, "teks": "..."}, ...], "respons": [{"id": "A", "teks": "..."}, ...], "kunci_jawaban": [{"premis_id": 1, "respons_id": "A"}, ...]}} (Pastikan jumlah premis dan respons sesuai ${count}) Pastikan struktur JSON persis seperti contoh di atas sesuai jenis soal yang diminta.`;
+            try {
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ parts: [{ text: finalPrompt }] }] };
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error.message || `API Error: ${response.status}`);
+                }
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const rawJsonText = result.candidates[0].content.parts[0].text;
+                    // Membersihkan JSON dari markdown code block jika ada
+                    const cleanJsonString = rawJsonText.replace(/```json|```/g, '').trim();
+                    const data = JSON.parse(cleanJsonString);
+                    // Bersihkan area hasil sebelum menampilkan yang baru
+                    generatedQuestionsDiv.innerHTML = '';
+                    generatedAnswersDiv.innerHTML = '';
+                    // Panggil fungsi display yang sesuai
+                    displayGeneratedQuestions(data.soal, type); // Kirim jenis soal juga
+                    showSnackbar("Soal berhasil dibuat!");
+                    copyQuestionsBtn.disabled = false; // Aktifkan tombol salin
+                    copyAnswersBtn.disabled = false;
+                } else {
+                    let errorMessage = "Respons dari API tidak valid atau kosong.";
+                    if (result.candidates?.[0]?.finishReason === 'SAFETY') {
+                        errorMessage = "Gagal membuat soal karena konten terdeteksi melanggar kebijakan keamanan.";
+                    }
+                    throw new Error(errorMessage);
+                }
+            } catch (error) {
+                console.error("Error generating questions:", error);
+                showSnackbar(`Gagal membuat soal: ${error.message}`);
+                generatedQuestionsDiv.innerHTML = `<p class="text-red-500 text-center italic">Terjadi kesalahan: ${error.message}</p>`;
+                generatedAnswersDiv.innerHTML = `<p class="text-red-500 text-center italic">Gagal memuat kunci jawaban.</p>`;
+            } finally {
+                generateQuestionsBtn.disabled = false; // Aktifkan kembali tombol generate
+            }
         });
         // Event Listener Awal untuk Tombol Salin Soal & Jawaban (belum ada fungsi copy)
         copyQuestionsBtn.addEventListener('click', () => {
-            showSnackbar("Fungsi Salin Soal belum siap.");
-            // Logika menyalin generatedQuestionsDiv.innerText akan ditambahkan nanti
+            const textToCopy = generatedQuestionsDiv.innerText;
+            if (textToCopy && textToCopy !== "Soal yang digenerate akan muncul di sini." && textToCopy !== "Membuat soal...") {
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => showSnackbar('Soal berhasil disalin!'))
+                    .catch(() => showSnackbar('Gagal menyalin soal.'));
+            } else {
+                showSnackbar('Tidak ada soal untuk disalin.');
+            }
         });
         copyAnswersBtn.addEventListener('click', () => {
-            showSnackbar("Fungsi Salin Jawaban belum siap.");
-            // Logika menyalin generatedAnswersDiv.innerText akan ditambahkan nanti
+            const textToCopy = generatedAnswersDiv.innerText;
+            if (textToCopy && textToCopy !== "Kunci jawaban akan muncul di sini." && textToCopy !== "Membuat kunci jawaban...") {
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => showSnackbar('Kunci jawaban berhasil disalin!'))
+                    .catch(() => showSnackbar('Gagal menyalin kunci jawaban.'));
+            } else {
+                showSnackbar('Tidak ada kunci jawaban untuk disalin.');
+            }
         });
     </script>
 </body>
