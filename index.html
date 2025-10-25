@@ -1149,59 +1149,87 @@
             const level = educationLevelSelect.value;
             const type = questionTypeSelect.value;
             const count = numQuestionsInput.value;
+
             // Validasi Input
             if (!material) { showSnackbar("Kolom materi masih kosong."); materialTextarea.focus(); return; }
             if (!level) { showSnackbar("Silakan pilih jenjang pendidikan."); educationLevelSelect.focus(); return; }
             if (!type) { showSnackbar("Silakan pilih jenis soal."); questionTypeSelect.focus(); return; }
             const apiKey = localStorage.getItem('user_google_api_key');
             if (!apiKey) { showSnackbar('Kunci API belum diatur.'); menuApiSettings.click(); return; }
+
+            // Tampilkan loading (pastikan elemen ada)
             if (!generatedQuestionsDiv || !generatedAnswersDiv) {
                 console.error("Elemen 'generated-questions' atau 'generated-answers' tidak ditemukan!");
                 showSnackbar("Terjadi kesalahan internal pada tampilan hasil.");
                 return;
             }
-            // Tampilkan loading
             generatedQuestionsDiv.innerHTML = `<div class="flex justify-center items-center py-10"><svg class="animate-spin h-8 w-8 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>`;
             generatedAnswersDiv.innerHTML = `<div class="flex justify-center items-center py-10"><svg class="animate-spin h-8 w-8 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>`;
             copyQuestionsBtn.disabled = true;
             copyAnswersBtn.disabled = true;
-            generateQuestionsBtn.disabled = true; // Nonaktifkan tombol generate selama proses
-            // --- PERBAIKAN: Deklarasi dan switch statement yang hilang ditambahkan di sini ---
+            generateQuestionsBtn.disabled = true;
+
             let typeDescription = "";
             switch (type) {
                 case 'pilihan_ganda': typeDescription = "Pilihan Ganda (satu jawaban benar)"; break;
                 case 'esai_singkat': typeDescription = "Esai Singkat"; break;
                 case 'benar_salah': typeDescription = "Benar/Salah"; break;
                 case 'menjodohkan': typeDescription = "Menjodohkan"; break;
-                // Tambahkan case lain jika ada jenis soal baru di masa depan
-                default: typeDescription = type; // Fallback jika tidak ada deskripsi khusus
+                default: typeDescription = type;
             }
-            // --- AKHIR PERBAIKAN ---
-            // Bangun prompt final (sekarang typeDescription sudah ada)
-            const finalPrompt = `Anda adalah seorang ahli pembuat soal evaluasi yang sangat teliti dan cerdas, memahami konteks pendidikan Islam di Indonesia sesuai pemahaman Sahabat dan manhaj Salaf. Tugas Anda adalah membuat soal yang ringkas namun berbobot berdasarkan materi berikut, menguji pemahaman mendalam (termasuk dalil jika ada), bukan sekadar hafalan: --- ${material} --- Buatlah soal dengan kriteria berikut: 1.  **Jenjang Pendidikan**: ${level} 2.  **Jenis Soal**: ${typeDescription} 3.  **Jumlah Soal**: ${count} 4.  **Kualitas Soal**: Soal harus ringkas, jelas, dan membutuhkan pemahaman cermat terhadap materi. Untuk pilihan ganda, buat pengecoh yang relevan dan mirip. Untuk esai/uraian, pastikan jawabannya definitif dari materi. Gaya bahasa alami seperti buatan guru, bukan mesin. 5.  **LARANGAN PENTING**: **JANGAN** gunakan frasa seperti 'Menurut teks ini...', 'Berdasarkan materi...', 'Menurut penulis...' di dalam **pertanyaan** itu sendiri. Buat pertanyaan seolah-olah menguji pemahaman subjeknya secara langsung, dengan materi ini sebagai sumber kebenaran absolut. Contoh pertanyaan yang baik: "Berdasarkan ayat [potongan ayat], pernyataan yang tepat adalah:", "Yang TIDAK termasuk konsekuensi makna dari [potongan teks] adalah:", "Pernyataan yang tepat terkait ungkapan [potongan teks] adalah:". 6.  **Format Output JSON (WAJIB)**: Kembalikan HANYA objek JSON tunggal yang valid, tanpa teks/markdown tambahan. Strukturnya harus **persis** seperti contoh sesuai jenis soal: * **Pilihan Ganda**: {"soal": [{"pertanyaan": "...", "pilihan": ["A. ...", "B. ...", "C. ...", "D. ..."], "jawaban_benar": "A"}]} * **Esai Singkat**: {"soal": [{"pertanyaan": "...", "jawaban_singkat": "..."}]} * **Benar/Salah**: {"soal": [{"pernyataan": "...", "jawaban": true}]} * **Menjodohkan**: {"soal": {"premis": [{"id": 1, "teks": "..."}, ...], "respons": [{"id": "A", "teks": "..."}, ...], "kunci_jawaban": [{"premis_id": 1, "respons_id": "A"}, ...]}} (Pastikan jumlah premis/respons = ${count})Pastikan struktur JSON persis seperti contoh di atas sesuai jenis soal yang diminta.`;
+
+            const finalPrompt = `Anda adalah seorang ahli pembuat soal evaluasi yang cerdas dan memahami konteks pendidikan di Indonesia, termasuk pengetahuan umum dan studi Islam sesuai pemahaman Sahabat dan manhaj Salaf.
+Tugas Anda adalah membuat soal berdasarkan materi berikut:
+---
+${material}
+---
+Buatlah soal dengan kriteria berikut:
+1.  **Jenjang Pendidikan**: ${level}
+2.  **Jenis Soal**: ${typeDescription}
+3.  **Jumlah Soal**: ${count}
+4.  **Kualitas Soal**: Soal harus mencerminkan pemahaman mendalam terhadap materi, bukan sekadar hafalan. Untuk pilihan ganda, buat pengecoh yang relevan dan masuk akal. Untuk esai/uraian, pastikan jawabannya definitif berdasarkan materi. Gaya bahasa harus alami seperti buatan manusia.
+5.  **Format Output (SANGAT PENTING)**: Kembalikan jawaban HANYA dalam format objek JSON tunggal yang valid, tanpa teks pembuka/penutup atau markdown. Strukturnya harus tepat sesuai jenis soal yang diminta:
+* **Pilihan Ganda**: {"soal": [{"pertanyaan": "...", "pilihan": ["A. ...", "B. ...", "C. ...", "D. ..."], "jawaban_benar": "A"}]}
+* **Esai Singkat**: {"soal": [{"pertanyaan": "...", "jawaban_singkat": "..."}]}
+* **Benar/Salah**: {"soal": [{"pernyataan": "...", "jawaban": true}]} (gunakan true untuk Benar, false untuk Salah)
+* **Menjodohkan**: {"soal": {"premis": [{"id": 1, "teks": "..."}, ...], "respons": [{"id": "A", "teks": "..."}, ...], "kunci_jawaban": [{"premis_id": 1, "respons_id": "A"}, ...]}} (Pastikan jumlah premis dan respons sesuai ${count})
+
+Pastikan struktur JSON persis seperti contoh di atas sesuai jenis soal yang diminta.`;
+
             try {
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
                 const payload = { contents: [{ parts: [{ text: finalPrompt }] }] };
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.error.message || `API Error: ${response.status}`);
                 }
+
                 const result = await response.json();
+
                 if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
                     const rawJsonText = result.candidates[0].content.parts[0].text;
-                    console.log("Raw API Response:", rawJsonText); // Tetap pertahankan ini untuk debugging jika perlu
+                    console.log("Raw API Response:", rawJsonText);
                     const cleanJsonString = rawJsonText.replace(/```json|```/g, '').trim();
                     const data = JSON.parse(cleanJsonString);
+
+                    // Pastikan elemen ada sebelum render
                     if (!generatedQuestionsDiv || !generatedAnswersDiv) {
                         throw new Error("Elemen target untuk hasil tidak ditemukan.");
                     }
                     generatedQuestionsDiv.innerHTML = '';
                     generatedAnswersDiv.innerHTML = '';
+
+                    // --- PERBAIKAN KRUSIAL DI SINI ---
+                    // Hanya panggil displayGeneratedQuestions. Hapus panggilan ke displayGeneratedAnswers.
                     displayGeneratedQuestions(data.soal, type);
+                    // --- AKHIR PERBAIKAN KRUSIAL ---
+
                     showSnackbar("Soal berhasil dibuat!");
                     copyQuestionsBtn.disabled = false;
                     copyAnswersBtn.disabled = false;
+
                 } else {
                     let errorMessage = "Respons dari API tidak valid atau kosong.";
                     if (result.candidates?.[0]?.finishReason === 'SAFETY') {
@@ -1212,8 +1240,7 @@
             } catch (error) {
                 console.error("Error generating questions:", error);
                 showSnackbar(`Gagal membuat soal: ${error.message}`);
-                generatedQuestionsDiv.innerHTML = `<p class="text-red-500 text-center italic">Terjadi kesalahan: ${error.message}</p>`;
-                generatedAnswersDiv.innerHTML = `<p class="text-red-500 text-center italic">Gagal memuat kunci jawaban.</p>`;
+                // Pastikan elemen ada sebelum menampilkan pesan error
                 if (generatedQuestionsDiv) generatedQuestionsDiv.innerHTML = `<p class="text-red-500 text-center italic">Terjadi kesalahan: ${error.message}</p>`;
                 if (generatedAnswersDiv) generatedAnswersDiv.innerHTML = `<p class="text-red-500 text-center italic">Gagal memuat kunci jawaban.</p>`;
             } finally {
