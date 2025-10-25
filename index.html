@@ -663,6 +663,44 @@
     <canvas id="camera-canvas" class="hidden"></canvas>
 
     <script type="module">
+        const body = document.body;
+        const ocrResult = document.getElementById('ocr-result');
+        const outputPlaceholder = document.getElementById('output-placeholder');
+        const copyTextBtn = document.getElementById('copy-text-btn');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const apiKeyStatus = document.getElementById('api-key-status');
+        const apiSettingsView = document.getElementById('api-settings-view');
+        const cameraModal = document.getElementById('camera-modal');
+        const videoElement = document.getElementById('camera-stream');
+        const canvasElement = document.getElementById('camera-canvas');
+        const captureBtn = document.getElementById('capture-btn');
+        const useCameraBtn = document.getElementById('use-camera-btn');
+        const closeCameraBtn = document.getElementById('close-camera-btn');
+        const menuBtn = document.getElementById('menu-btn');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+        const menuDeviceToggle = document.getElementById('menu-device-toggle');
+        const menuThemeToggle = document.getElementById('menu-theme-toggle');
+        const menuApiSettings = document.getElementById('menu-api-settings');
+        const imageInputArea = document.getElementById('image-input-area');
+        const cropperStage = document.getElementById('cropper-stage');
+        const imageToCrop = document.getElementById('image-to-crop');
+        const extractBtn = document.getElementById('extract-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const scanOverlay = document.getElementById('scan-overlay');
+        const tidyTextBtn = document.getElementById('tidy-text-btn');
+        const revertBtn = document.getElementById('revert-btn');
+        const formatBtn = document.getElementById('format-btn');
+        const addToMaterialBtn = document.getElementById('add-to-material-btn');
+        const materialTextarea = document.getElementById('material-textarea');
+        const clearMaterialBtn = document.getElementById('clear-material-btn');
+        const educationLevelSelect = document.getElementById('education-level');
+        const questionTypeSelect = document.getElementById('question-type');
+        const numQuestionsInput = document.getElementById('num-questions');
+        const generateQuestionsBtn = document.getElementById('generate-questions-btn');
+        const generatedQuestionsDiv = document.getElementById('generated-questions');
+        const generatedAnswersDiv = document.getElementById('generated-answers');
+        const copyQuestionsBtn = document.getElementById('copy-questions-btn');
+        const copyAnswersBtn = document.getElementById('copy-answers-btn');
         let originalOcrText = '';
         let cropper = null;
         let currentStream = null;
@@ -1076,44 +1114,6 @@
 
         // --- Inisialisasi Aplikasi ---
         document.addEventListener('DOMContentLoaded', () => {
-            const body = document.body;
-            const ocrResult = document.getElementById('ocr-result');
-            const outputPlaceholder = document.getElementById('output-placeholder');
-            const copyTextBtn = document.getElementById('copy-text-btn');
-            const apiKeyInput = document.getElementById('api-key-input');
-            const apiKeyStatus = document.getElementById('api-key-status');
-            const apiSettingsView = document.getElementById('api-settings-view');
-            const cameraModal = document.getElementById('camera-modal');
-            const videoElement = document.getElementById('camera-stream');
-            const canvasElement = document.getElementById('camera-canvas');
-            const captureBtn = document.getElementById('capture-btn');
-            const useCameraBtn = document.getElementById('use-camera-btn');
-            const closeCameraBtn = document.getElementById('close-camera-btn');
-            const menuBtn = document.getElementById('menu-btn');
-            const dropdownMenu = document.getElementById('dropdown-menu');
-            const menuDeviceToggle = document.getElementById('menu-device-toggle');
-            const menuThemeToggle = document.getElementById('menu-theme-toggle');
-            const menuApiSettings = document.getElementById('menu-api-settings');
-            const imageInputArea = document.getElementById('image-input-area');
-            const cropperStage = document.getElementById('cropper-stage');
-            const imageToCrop = document.getElementById('image-to-crop');
-            const extractBtn = document.getElementById('extract-btn');
-            const resetBtn = document.getElementById('reset-btn');
-            const scanOverlay = document.getElementById('scan-overlay');
-            const tidyTextBtn = document.getElementById('tidy-text-btn');
-            const revertBtn = document.getElementById('revert-btn');
-            const formatBtn = document.getElementById('format-btn');
-            const addToMaterialBtn = document.getElementById('add-to-material-btn');
-            const materialTextarea = document.getElementById('material-textarea');
-            const clearMaterialBtn = document.getElementById('clear-material-btn');
-            const educationLevelSelect = document.getElementById('education-level');
-            const questionTypeSelect = document.getElementById('question-type');
-            const numQuestionsInput = document.getElementById('num-questions');
-            const generateQuestionsBtn = document.getElementById('generate-questions-btn');
-            const generatedQuestionsDiv = document.getElementById('generated-questions');
-            const generatedAnswersDiv = document.getElementById('generated-answers');
-            const copyQuestionsBtn = document.getElementById('copy-questions-btn');
-            const copyAnswersBtn = document.getElementById('copy-answers-btn');
             const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             applyTheme(savedTheme); applyDeviceView(0); loadApiKey(); setUIState('idle');
         });
@@ -1189,10 +1189,10 @@ Buatlah soal dengan kriteria berikut:
 3.  **Jumlah Soal**: ${count}
 4.  **Kualitas Soal**: Soal harus mencerminkan pemahaman mendalam terhadap materi, bukan sekadar hafalan. Untuk pilihan ganda, buat pengecoh yang relevan dan masuk akal. Untuk esai/uraian, pastikan jawabannya definitif berdasarkan materi. Gaya bahasa harus alami seperti buatan manusia.
 5.  **Format Output (SANGAT PENTING)**: Kembalikan jawaban HANYA dalam format objek JSON tunggal yang valid, tanpa teks pembuka/penutup atau markdown. Strukturnya harus tepat sesuai jenis soal yang diminta:
-* **Pilihan Ganda**: {"soal": [{"pertanyaan": "...", "pilihan": ["A. ...", "B. ...", "C. ...", "D. ..."], "jawaban_benar": "A"}]}
-* **Esai Singkat**: {"soal": [{"pertanyaan": "...", "jawaban_singkat": "..."}]}
-* **Benar/Salah**: {"soal": [{"pernyataan": "...", "jawaban": true}]} (gunakan true untuk Benar, false untuk Salah)
-* **Menjodohkan**: {"soal": {"premis": [{"id": 1, "teks": "..."}, ...], "respons": [{"id": "A", "teks": "..."}, ...], "kunci_jawaban": [{"premis_id": 1, "respons_id": "A"}, ...]}} (Pastikan jumlah premis dan respons sesuai ${count})
+    * **Pilihan Ganda**: {"soal": [{"pertanyaan": "...", "pilihan": ["A. ...", "B. ...", "C. ...", "D. ..."], "jawaban_benar": "A"}]}
+    * **Esai Singkat**: {"soal": [{"pertanyaan": "...", "jawaban_singkat": "..."}]}
+    * **Benar/Salah**: {"soal": [{"pernyataan": "...", "jawaban": true}]} (gunakan true untuk Benar, false untuk Salah)
+    * **Menjodohkan**: {"soal": {"premis": [{"id": 1, "teks": "..."}, ...], "respons": [{"id": "A", "teks": "..."}, ...], "kunci_jawaban": [{"premis_id": 1, "respons_id": "A"}, ...]}} (Pastikan jumlah premis dan respons sesuai ${count})
 
 Pastikan struktur JSON persis seperti contoh di atas sesuai jenis soal yang diminta.`;
 
