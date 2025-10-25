@@ -1155,6 +1155,11 @@
             if (!type) { showSnackbar("Silakan pilih jenis soal."); questionTypeSelect.focus(); return; }
             const apiKey = localStorage.getItem('user_google_api_key');
             if (!apiKey) { showSnackbar('Kunci API belum diatur.'); menuApiSettings.click(); return; }
+            if (!generatedQuestionsDiv || !generatedAnswersDiv) {
+                console.error("Elemen 'generated-questions' atau 'generated-answers' tidak ditemukan!");
+                showSnackbar("Terjadi kesalahan internal pada tampilan hasil.");
+                return;
+            }
             // Tampilkan loading
             generatedQuestionsDiv.innerHTML = `<div class="flex justify-center items-center py-10"><svg class="animate-spin h-8 w-8 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>`;
             generatedAnswersDiv.innerHTML = `<div class="flex justify-center items-center py-10"><svg class="animate-spin h-8 w-8 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>`;
@@ -1188,6 +1193,9 @@
                     console.log("Raw API Response:", rawJsonText); // Tetap pertahankan ini untuk debugging jika perlu
                     const cleanJsonString = rawJsonText.replace(/```json|```/g, '').trim();
                     const data = JSON.parse(cleanJsonString);
+                    if (!generatedQuestionsDiv || !generatedAnswersDiv) {
+                        throw new Error("Elemen target untuk hasil tidak ditemukan.");
+                    }
                     generatedQuestionsDiv.innerHTML = '';
                     generatedAnswersDiv.innerHTML = '';
                     displayGeneratedQuestions(data.soal, type);
@@ -1206,6 +1214,8 @@
                 showSnackbar(`Gagal membuat soal: ${error.message}`);
                 generatedQuestionsDiv.innerHTML = `<p class="text-red-500 text-center italic">Terjadi kesalahan: ${error.message}</p>`;
                 generatedAnswersDiv.innerHTML = `<p class="text-red-500 text-center italic">Gagal memuat kunci jawaban.</p>`;
+                if (generatedQuestionsDiv) generatedQuestionsDiv.innerHTML = `<p class="text-red-500 text-center italic">Terjadi kesalahan: ${error.message}</p>`;
+                if (generatedAnswersDiv) generatedAnswersDiv.innerHTML = `<p class="text-red-500 text-center italic">Gagal memuat kunci jawaban.</p>`;
             } finally {
                 generateQuestionsBtn.disabled = false;
             }
