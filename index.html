@@ -577,12 +577,19 @@
                             </button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 gap-0">
-                        <div class="p-4 min-h-[200px]">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
+                        <div class="p-4 border-b md:border-b-0 md:border-r border-custom min-h-[200px]">
                             <h3 class="font-semibold text-center mb-3 text-primary uppercase tracking-wider">Soal</h3>
                             <div id="generated-questions" class="text-sm space-y-4">
                                 <p class="text-secondary text-center italic">Soal yang digenerate akan muncul di sini.
                                 </p>
+                            </div>
+                        </div>
+                        <div class="p-4 min-h-[200px]">
+                            <h3 class="font-semibold text-center mb-3 text-primary uppercase tracking-wider">Kunci
+                                Jawaban</h3>
+                            <div id="generated-answers" class="text-sm space-y-4">
+                                <p class="text-secondary text-center italic">Kunci jawaban akan muncul di sini.</p>
                             </div>
                         </div>
                     </div>
@@ -974,70 +981,32 @@
         }
 
         function displayGeneratedQuestions(data, type) {
-            // Kosongkan kontainer soal dan jawaban (jawaban akan disisipkan di bawah soal)
-            generatedQuestionsDiv.innerHTML = '';
-            generatedAnswersDiv.innerHTML = ''; // Tetap dikosongkan untuk jenis menjodohkan nanti
-
-            let questionHtml = '<ol class="list-decimal list-inside space-y-6">'; // Tambah space-y lebih besar
-            let answerTextForCopy = []; // Array untuk mengumpulkan teks jawaban untuk disalin
-
-            try {
-                let nomorSoalCounter = 1; // Counter untuk penomoran
-
+            let questionHtml = '<ol class="list-decimal list-inside space-y-4">';
+            let answerHtml = '<ol class="list-decimal list-inside space-y-2">';
+            let nomorSoal = 1; // Penghitung lokal untuk fungsi ini
+            try { // Tambahkan try-catch untuk parsing yang lebih aman
                 switch (type) {
                     case 'pilihan_ganda':
                         data.forEach(item => {
-                            questionHtml += `<li>`;
-                            questionHtml += `<div>${item.pertanyaan}</div>`; // Pertanyaan
-                            // Pilihan Jawaban
-                            questionHtml += `<ul class="list-none pl-6 space-y-1 mt-2">`;
-                            let correctAnswerText = '';
-                            if (item.pilihan && Array.isArray(item.pilihan)) {
-                                item.pilihan.forEach(pilihan => {
-                                    questionHtml += `<li>${pilihan}</li>`;
-                                    // Ekstrak huruf (A, B, C, D) dan teks jawaban
-                                    const match = pilihan.match(/^([A-Z])\.\s*(.*)/i);
-                                    if (match && match[1].toUpperCase() === item.jawaban_benar.toUpperCase()) {
-                                        correctAnswerText = pilihan; // Simpan teks jawaban benar lengkap
-                                    }
-                                });
-                            }
-                            questionHtml += `</ul>`;
-                            // Tampilkan Jawaban Benar di Bawah Soal
-                            questionHtml += `<div class="mt-2 pl-6 text-green-400 font-semibold text-sm">Jawaban: ${correctAnswerText || item.jawaban_benar}</div>`;
-                            questionHtml += `</li>`;
-                            answerTextForCopy.push(`${nomorSoalCounter}. ${correctAnswerText || item.jawaban_benar}`);
-                            nomorSoalCounter++;
+                            questionHtml += `<li><div>${item.pertanyaan}</div><ul class="list-none pl-6 space-y-1 mt-1">`;
+                            item.pilihan.forEach(p => questionHtml += `<li>${p}</li>`);
+                            questionHtml += `</ul></li>`;
+                            answerHtml += `<li>${item.jawaban_benar}</li>`;
                         });
                         break;
-
                     case 'esai_singkat':
                         data.forEach(item => {
-                            questionHtml += `<li>`;
-                            questionHtml += `<div>${item.pertanyaan}</div>`; // Pertanyaan
-                            // Tampilkan Jawaban Singkat di Bawah Soal
-                            questionHtml += `<div class="mt-2 pl-6 text-green-400 font-semibold text-sm">Jawaban: ${item.jawaban_singkat}</div>`;
-                            questionHtml += `</li>`;
-                            answerTextForCopy.push(`${nomorSoalCounter}. ${item.jawaban_singkat}`);
-                            nomorSoalCounter++;
+                            questionHtml += `<li>${item.pertanyaan}</li>`;
+                            answerHtml += `<li>${item.jawaban_singkat}</li>`;
                         });
                         break;
-
                     case 'benar_salah':
                         data.forEach(item => {
-                            questionHtml += `<li>`;
-                            questionHtml += `<div>${item.pernyataan} (Benar/Salah)</div>`; // Pernyataan
-                            // Tampilkan Jawaban Benar/Salah di Bawah Soal
-                            const jawabanBS = item.jawaban === true ? 'Benar' : 'Salah';
-                            questionHtml += `<div class="mt-2 pl-6 text-green-400 font-semibold text-sm">Jawaban: ${jawabanBS}</div>`;
-                            questionHtml += `</li>`;
-                            answerTextForCopy.push(`${nomorSoalCounter}. ${jawabanBS}`);
-                            nomorSoalCounter++;
+                            questionHtml += `<li>${item.pernyataan} (Benar/Salah)</li>`;
+                            answerHtml += `<li>${item.jawaban ? 'Benar' : 'Salah'}</li>`;
                         });
                         break;
-
                     case 'menjodohkan':
-                        // Untuk menjodohkan, kita tetap gunakan kolom jawaban terpisah karena strukturnya berbeda
                         questionHtml += `<li><div>Jodohkan Kolom A dengan Kolom B!</div>`;
                         questionHtml += `<div class="grid grid-cols-2 gap-4 mt-2">`;
                         // Kolom A (Premis)
@@ -1048,42 +1017,27 @@
                         questionHtml += `<div class="space-y-1"><strong class="block">Kolom B</strong>`;
                         data.respons.forEach(r => questionHtml += `<div>${r.id}. ${r.teks}</div>`);
                         questionHtml += `</div></div></li>`; // Tutup grid dan list item
-
-                        // Kunci Jawaban Menjodohkan (tetap di kolom terpisah)
-                        let answerHtmlMenjodohkan = '<ol class="list-decimal list-inside space-y-2"><li>'; // Mulai list jawaban
+                        // Kunci Jawaban Menjodohkan
+                        answerHtml += `<li>`;
                         data.kunci_jawaban.forEach((k, index) => {
-                            answerHtmlMenjodohkan += `${k.premis_id} - ${k.respons_id}${index < data.kunci_jawaban.length - 1 ? ', ' : ''}`;
-                            answerTextForCopy.push(`${k.premis_id} - ${k.respons_id}`); // Kumpulkan juga untuk disalin
+                            answerHtml += `${k.premis_id} - ${k.respons_id}${index < data.kunci_jawaban.length - 1 ? ', ' : ''}`;
                         });
-                        answerHtmlMenjodohkan += `</li></ol>`;
-                        generatedAnswersDiv.innerHTML = answerHtmlMenjodohkan; // Tampilkan di kolom jawaban
-                        break; // Keluar dari switch
-
+                        answerHtml += `</li>`;
+                        break;
                     default:
                         questionHtml = '<p class="text-secondary text-center italic">Jenis soal tidak dikenal.</p>';
+                        answerHtml = '<p class="text-secondary text-center italic">Tidak ada kunci jawaban.</p>';
                 }
             } catch (parseError) {
                 console.error("Error parsing AI response:", parseError);
                 showSnackbar("Format respons dari AI tidak sesuai. Gagal menampilkan soal.");
                 questionHtml = `<p class="text-red-500 text-center italic">Gagal menampilkan soal. Format respons AI tidak valid.</p>`;
+                answerHtml = `<p class="text-red-500 text-center italic">Gagal menampilkan kunci jawaban.</p>`;
             }
-
             questionHtml += '</ol>';
+            answerHtml += '</ol>';
             generatedQuestionsDiv.innerHTML = questionHtml;
-
-            // Jika BUKAN menjodohkan, kolom jawaban tetap kosong/disembunyikan
-            if (type !== 'menjodohkan') {
-                generatedAnswersDiv.innerHTML = ''; // Pastikan kosong
-                // Jika Anda menghapus div kolom jawaban dari HTML, baris di bawah ini tidak perlu
-                // generatedAnswersDiv.parentElement.classList.add('hidden'); // Sembunyikan kolomnya
-            } else {
-                // Jika Anda menghapus div kolom jawaban dari HTML, baris di bawah ini tidak perlu
-                // generatedAnswersDiv.parentElement.classList.remove('hidden'); // Tampilkan lagi kolomnya
-            }
-
-            // Simpan teks jawaban yang dikumpulkan untuk fungsi Salin Jawaban
-            generatedAnswersDiv.dataset.answerText = answerTextForCopy.join('\n');
-
+            generatedAnswersDiv.innerHTML = answerHtml;
         }
 
         // --- Event Listeners ---
@@ -1149,87 +1103,51 @@
             const level = educationLevelSelect.value;
             const type = questionTypeSelect.value;
             const count = numQuestionsInput.value;
-
             // Validasi Input
             if (!material) { showSnackbar("Kolom materi masih kosong."); materialTextarea.focus(); return; }
             if (!level) { showSnackbar("Silakan pilih jenjang pendidikan."); educationLevelSelect.focus(); return; }
             if (!type) { showSnackbar("Silakan pilih jenis soal."); questionTypeSelect.focus(); return; }
             const apiKey = localStorage.getItem('user_google_api_key');
             if (!apiKey) { showSnackbar('Kunci API belum diatur.'); menuApiSettings.click(); return; }
-
-            // Tampilkan loading (pastikan elemen ada)
-            if (!generatedQuestionsDiv || !generatedAnswersDiv) {
-                console.error("Elemen 'generated-questions' atau 'generated-answers' tidak ditemukan!");
-                showSnackbar("Terjadi kesalahan internal pada tampilan hasil.");
-                return;
-            }
+            // Tampilkan loading
             generatedQuestionsDiv.innerHTML = `<div class="flex justify-center items-center py-10"><svg class="animate-spin h-8 w-8 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>`;
             generatedAnswersDiv.innerHTML = `<div class="flex justify-center items-center py-10"><svg class="animate-spin h-8 w-8 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>`;
             copyQuestionsBtn.disabled = true;
             copyAnswersBtn.disabled = true;
-            generateQuestionsBtn.disabled = true;
-
+            generateQuestionsBtn.disabled = true; // Nonaktifkan tombol generate selama proses
+            // --- PERBAIKAN: Deklarasi dan switch statement yang hilang ditambahkan di sini ---
             let typeDescription = "";
             switch (type) {
                 case 'pilihan_ganda': typeDescription = "Pilihan Ganda (satu jawaban benar)"; break;
                 case 'esai_singkat': typeDescription = "Esai Singkat"; break;
                 case 'benar_salah': typeDescription = "Benar/Salah"; break;
                 case 'menjodohkan': typeDescription = "Menjodohkan"; break;
-                default: typeDescription = type;
+                // Tambahkan case lain jika ada jenis soal baru di masa depan
+                default: typeDescription = type; // Fallback jika tidak ada deskripsi khusus
             }
-
-            const finalPrompt = `Anda adalah seorang ahli pembuat soal evaluasi yang cerdas dan memahami konteks pendidikan di Indonesia, termasuk pengetahuan umum dan studi Islam sesuai pemahaman Sahabat dan manhaj Salaf.
-Tugas Anda adalah membuat soal berdasarkan materi berikut:
----
-${material}
----
-Buatlah soal dengan kriteria berikut:
-1.  **Jenjang Pendidikan**: ${level}
-2.  **Jenis Soal**: ${typeDescription}
-3.  **Jumlah Soal**: ${count}
-4.  **Kualitas Soal**: Soal harus mencerminkan pemahaman mendalam terhadap materi, bukan sekadar hafalan. Untuk pilihan ganda, buat pengecoh yang relevan dan masuk akal. Untuk esai/uraian, pastikan jawabannya definitif berdasarkan materi. Gaya bahasa harus alami seperti buatan manusia.
-5.  **Format Output (SANGAT PENTING)**: Kembalikan jawaban HANYA dalam format objek JSON tunggal yang valid, tanpa teks pembuka/penutup atau markdown. Strukturnya harus tepat sesuai jenis soal yang diminta:
-    * **Pilihan Ganda**: {"soal": [{"pertanyaan": "...", "pilihan": ["A. ...", "B. ...", "C. ...", "D. ..."], "jawaban_benar": "A"}]}
-    * **Esai Singkat**: {"soal": [{"pertanyaan": "...", "jawaban_singkat": "..."}]}
-    * **Benar/Salah**: {"soal": [{"pernyataan": "...", "jawaban": true}]} (gunakan true untuk Benar, false untuk Salah)
-    * **Menjodohkan**: {"soal": {"premis": [{"id": 1, "teks": "..."}, ...], "respons": [{"id": "A", "teks": "..."}, ...], "kunci_jawaban": [{"premis_id": 1, "respons_id": "A"}, ...]}} (Pastikan jumlah premis dan respons sesuai ${count})
-
-Pastikan struktur JSON persis seperti contoh di atas sesuai jenis soal yang diminta.`;
-
+            // --- AKHIR PERBAIKAN ---
+            // Bangun prompt final (sekarang typeDescription sudah ada)
+            const finalPrompt = `Anda adalah seorang ahli pembuat soal evaluasi yang sangat teliti dan cerdas, memahami konteks pendidikan Islam di Indonesia sesuai pemahaman Sahabat dan manhaj Salaf. Tugas Anda adalah membuat soal yang ringkas namun berbobot berdasarkan materi berikut, menguji pemahaman mendalam (termasuk dalil jika ada), bukan sekadar hafalan: --- ${material} --- Buatlah soal dengan kriteria berikut: 1.  **Jenjang Pendidikan**: ${level} 2.  **Jenis Soal**: ${typeDescription} 3.  **Jumlah Soal**: ${count} 4.  **Kualitas Soal**: Soal harus ringkas, jelas, dan membutuhkan pemahaman cermat terhadap materi. Untuk pilihan ganda, buat pengecoh yang relevan dan mirip. Untuk esai/uraian, pastikan jawabannya definitif dari materi. Gaya bahasa alami seperti buatan guru, bukan mesin. 5.  **LARANGAN PENTING**: **JANGAN** gunakan frasa seperti 'Menurut teks ini...', 'Berdasarkan materi...', 'Menurut penulis...' di dalam **pertanyaan** itu sendiri. Buat pertanyaan seolah-olah menguji pemahaman subjeknya secara langsung, dengan materi ini sebagai sumber kebenaran absolut. Contoh pertanyaan yang baik: "Berdasarkan ayat [potongan ayat], pernyataan yang tepat adalah:", "Yang TIDAK termasuk konsekuensi makna dari [potongan teks] adalah:", "Pernyataan yang tepat terkait ungkapan [potongan teks] adalah:". 6.  **Format Output JSON (WAJIB)**: Kembalikan HANYA objek JSON tunggal yang valid, tanpa teks/markdown tambahan. Strukturnya harus **persis** seperti contoh sesuai jenis soal: * **Pilihan Ganda**: {"soal": [{"pertanyaan": "...", "pilihan": ["A. ...", "B. ...", "C. ...", "D. ..."], "jawaban_benar": "A"}]} * **Esai Singkat**: {"soal": [{"pertanyaan": "...", "jawaban_singkat": "..."}]} * **Benar/Salah**: {"soal": [{"pernyataan": "...", "jawaban": true}]} * **Menjodohkan**: {"soal": {"premis": [{"id": 1, "teks": "..."}, ...], "respons": [{"id": "A", "teks": "..."}, ...], "kunci_jawaban": [{"premis_id": 1, "respons_id": "A"}, ...]}} (Pastikan jumlah premis/respons = ${count})Pastikan struktur JSON persis seperti contoh di atas sesuai jenis soal yang diminta.`;
             try {
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
                 const payload = { contents: [{ parts: [{ text: finalPrompt }] }] };
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.error.message || `API Error: ${response.status}`);
                 }
-
                 const result = await response.json();
-
                 if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
                     const rawJsonText = result.candidates[0].content.parts[0].text;
-                    console.log("Raw API Response:", rawJsonText);
+                    console.log("Raw API Response:", rawJsonText); // Tetap pertahankan ini untuk debugging jika perlu
                     const cleanJsonString = rawJsonText.replace(/```json|```/g, '').trim();
                     const data = JSON.parse(cleanJsonString);
-
-                    // Pastikan elemen ada sebelum render
-                    if (!generatedQuestionsDiv || !generatedAnswersDiv) {
-                        throw new Error("Elemen target untuk hasil tidak ditemukan.");
-                    }
                     generatedQuestionsDiv.innerHTML = '';
                     generatedAnswersDiv.innerHTML = '';
-
-                    // --- PERBAIKAN KRUSIAL DI SINI ---
-                    // Hanya panggil displayGeneratedQuestions. Hapus panggilan ke displayGeneratedAnswers.
                     displayGeneratedQuestions(data.soal, type);
-                    // --- AKHIR PERBAIKAN KRUSIAL ---
-
                     showSnackbar("Soal berhasil dibuat!");
                     copyQuestionsBtn.disabled = false;
                     copyAnswersBtn.disabled = false;
-
                 } else {
                     let errorMessage = "Respons dari API tidak valid atau kosong.";
                     if (result.candidates?.[0]?.finishReason === 'SAFETY') {
@@ -1240,9 +1158,8 @@ Pastikan struktur JSON persis seperti contoh di atas sesuai jenis soal yang dimi
             } catch (error) {
                 console.error("Error generating questions:", error);
                 showSnackbar(`Gagal membuat soal: ${error.message}`);
-                // Pastikan elemen ada sebelum menampilkan pesan error
-                if (generatedQuestionsDiv) generatedQuestionsDiv.innerHTML = `<p class="text-red-500 text-center italic">Terjadi kesalahan: ${error.message}</p>`;
-                if (generatedAnswersDiv) generatedAnswersDiv.innerHTML = `<p class="text-red-500 text-center italic">Gagal memuat kunci jawaban.</p>`;
+                generatedQuestionsDiv.innerHTML = `<p class="text-red-500 text-center italic">Terjadi kesalahan: ${error.message}</p>`;
+                generatedAnswersDiv.innerHTML = `<p class="text-red-500 text-center italic">Gagal memuat kunci jawaban.</p>`;
             } finally {
                 generateQuestionsBtn.disabled = false;
             }
@@ -1259,8 +1176,7 @@ Pastikan struktur JSON persis seperti contoh di atas sesuai jenis soal yang dimi
             }
         });
         copyAnswersBtn.addEventListener('click', () => {
-            // Ambil teks jawaban dari data attribute
-            const textToCopy = generatedAnswersDiv.dataset.answerText || generatedAnswersDiv.innerText; // Fallback ke innerText jika data attribute kosong
+            const textToCopy = generatedAnswersDiv.innerText;
             if (textToCopy && textToCopy !== "Kunci jawaban akan muncul di sini." && textToCopy !== "Membuat kunci jawaban...") {
                 navigator.clipboard.writeText(textToCopy)
                     .then(() => showSnackbar('Kunci jawaban berhasil disalin!'))
