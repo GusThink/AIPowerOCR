@@ -577,19 +577,12 @@
                             </button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-0">
-                        <div class="p-4 border-b md:border-b-0 md:border-r border-custom min-h-[200px]">
+                    <div class="grid grid-cols-1 gap-0">
+                        <div class="p-4 min-h-[200px]">
                             <h3 class="font-semibold text-center mb-3 text-primary uppercase tracking-wider">Soal</h3>
                             <div id="generated-questions" class="text-sm space-y-4">
                                 <p class="text-secondary text-center italic">Soal yang digenerate akan muncul di sini.
                                 </p>
-                            </div>
-                        </div>
-                        <div class="p-4 min-h-[200px]">
-                            <h3 class="font-semibold text-center mb-3 text-primary uppercase tracking-wider">Kunci
-                                Jawaban</h3>
-                            <div id="generated-answers" class="text-sm space-y-4">
-                                <p class="text-secondary text-center italic">Kunci jawaban akan muncul di sini.</p>
                             </div>
                         </div>
                     </div>
@@ -981,32 +974,70 @@
         }
 
         function displayGeneratedQuestions(data, type) {
-            let questionHtml = '<ol class="list-decimal list-inside space-y-4">';
-            let answerHtml = '<ol class="list-decimal list-inside space-y-2">';
-            let nomorSoal = 1; // Penghitung lokal untuk fungsi ini
-            try { // Tambahkan try-catch untuk parsing yang lebih aman
+            // Kosongkan kontainer soal dan jawaban (jawaban akan disisipkan di bawah soal)
+            generatedQuestionsDiv.innerHTML = '';
+            generatedAnswersDiv.innerHTML = ''; // Tetap dikosongkan untuk jenis menjodohkan nanti
+
+            let questionHtml = '<ol class="list-decimal list-inside space-y-6">'; // Tambah space-y lebih besar
+            let answerTextForCopy = []; // Array untuk mengumpulkan teks jawaban untuk disalin
+
+            try {
+                let nomorSoalCounter = 1; // Counter untuk penomoran
+
                 switch (type) {
                     case 'pilihan_ganda':
                         data.forEach(item => {
-                            questionHtml += `<li><div>${item.pertanyaan}</div><ul class="list-none pl-6 space-y-1 mt-1">`;
-                            item.pilihan.forEach(p => questionHtml += `<li>${p}</li>`);
-                            questionHtml += `</ul></li>`;
-                            answerHtml += `<li>${item.jawaban_benar}</li>`;
+                            questionHtml += `<li>`;
+                            questionHtml += `<div>${item.pertanyaan}</div>`; // Pertanyaan
+                            // Pilihan Jawaban
+                            questionHtml += `<ul class="list-none pl-6 space-y-1 mt-2">`;
+                            let correctAnswerText = '';
+                            if (item.pilihan && Array.isArray(item.pilihan)) {
+                                item.pilihan.forEach(pilihan => {
+                                    questionHtml += `<li>${pilihan}</li>`;
+                                    // Ekstrak huruf (A, B, C, D) dan teks jawaban
+                                    const match = pilihan.match(/^([A-Z])\.\s*(.*)/i);
+                                    if (match && match[1].toUpperCase() === item.jawaban_benar.toUpperCase()) {
+                                        correctAnswerText = pilihan; // Simpan teks jawaban benar lengkap
+                                    }
+                                });
+                            }
+                            questionHtml += `</ul>`;
+                            // Tampilkan Jawaban Benar di Bawah Soal
+                            questionHtml += `<div class="mt-2 pl-6 text-green-400 font-semibold text-sm">Jawaban: ${correctAnswerText || item.jawaban_benar}</div>`;
+                            questionHtml += `</li>`;
+                            answerTextForCopy.push(`${nomorSoalCounter}. ${correctAnswerText || item.jawaban_benar}`);
+                            nomorSoalCounter++;
                         });
                         break;
+
                     case 'esai_singkat':
                         data.forEach(item => {
-                            questionHtml += `<li>${item.pertanyaan}</li>`;
-                            answerHtml += `<li>${item.jawaban_singkat}</li>`;
+                            questionHtml += `<li>`;
+                            questionHtml += `<div>${item.pertanyaan}</div>`; // Pertanyaan
+                            // Tampilkan Jawaban Singkat di Bawah Soal
+                            questionHtml += `<div class="mt-2 pl-6 text-green-400 font-semibold text-sm">Jawaban: ${item.jawaban_singkat}</div>`;
+                            questionHtml += `</li>`;
+                            answerTextForCopy.push(`${nomorSoalCounter}. ${item.jawaban_singkat}`);
+                            nomorSoalCounter++;
                         });
                         break;
+
                     case 'benar_salah':
                         data.forEach(item => {
-                            questionHtml += `<li>${item.pernyataan} (Benar/Salah)</li>`;
-                            answerHtml += `<li>${item.jawaban ? 'Benar' : 'Salah'}</li>`;
+                            questionHtml += `<li>`;
+                            questionHtml += `<div>${item.pernyataan} (Benar/Salah)</div>`; // Pernyataan
+                            // Tampilkan Jawaban Benar/Salah di Bawah Soal
+                            const jawabanBS = item.jawaban === true ? 'Benar' : 'Salah';
+                            questionHtml += `<div class="mt-2 pl-6 text-green-400 font-semibold text-sm">Jawaban: ${jawabanBS}</div>`;
+                            questionHtml += `</li>`;
+                            answerTextForCopy.push(`${nomorSoalCounter}. ${jawabanBS}`);
+                            nomorSoalCounter++;
                         });
                         break;
+
                     case 'menjodohkan':
+                        // Untuk menjodohkan, kita tetap gunakan kolom jawaban terpisah karena strukturnya berbeda
                         questionHtml += `<li><div>Jodohkan Kolom A dengan Kolom B!</div>`;
                         questionHtml += `<div class="grid grid-cols-2 gap-4 mt-2">`;
                         // Kolom A (Premis)
@@ -1017,27 +1048,42 @@
                         questionHtml += `<div class="space-y-1"><strong class="block">Kolom B</strong>`;
                         data.respons.forEach(r => questionHtml += `<div>${r.id}. ${r.teks}</div>`);
                         questionHtml += `</div></div></li>`; // Tutup grid dan list item
-                        // Kunci Jawaban Menjodohkan
-                        answerHtml += `<li>`;
+
+                        // Kunci Jawaban Menjodohkan (tetap di kolom terpisah)
+                        let answerHtmlMenjodohkan = '<ol class="list-decimal list-inside space-y-2"><li>'; // Mulai list jawaban
                         data.kunci_jawaban.forEach((k, index) => {
-                            answerHtml += `${k.premis_id} - ${k.respons_id}${index < data.kunci_jawaban.length - 1 ? ', ' : ''}`;
+                            answerHtmlMenjodohkan += `${k.premis_id} - ${k.respons_id}${index < data.kunci_jawaban.length - 1 ? ', ' : ''}`;
+                            answerTextForCopy.push(`${k.premis_id} - ${k.respons_id}`); // Kumpulkan juga untuk disalin
                         });
-                        answerHtml += `</li>`;
-                        break;
+                        answerHtmlMenjodohkan += `</li></ol>`;
+                        generatedAnswersDiv.innerHTML = answerHtmlMenjodohkan; // Tampilkan di kolom jawaban
+                        break; // Keluar dari switch
+
                     default:
                         questionHtml = '<p class="text-secondary text-center italic">Jenis soal tidak dikenal.</p>';
-                        answerHtml = '<p class="text-secondary text-center italic">Tidak ada kunci jawaban.</p>';
                 }
             } catch (parseError) {
                 console.error("Error parsing AI response:", parseError);
                 showSnackbar("Format respons dari AI tidak sesuai. Gagal menampilkan soal.");
                 questionHtml = `<p class="text-red-500 text-center italic">Gagal menampilkan soal. Format respons AI tidak valid.</p>`;
-                answerHtml = `<p class="text-red-500 text-center italic">Gagal menampilkan kunci jawaban.</p>`;
             }
+
             questionHtml += '</ol>';
-            answerHtml += '</ol>';
             generatedQuestionsDiv.innerHTML = questionHtml;
-            generatedAnswersDiv.innerHTML = answerHtml;
+
+            // Jika BUKAN menjodohkan, kolom jawaban tetap kosong/disembunyikan
+            if (type !== 'menjodohkan') {
+                generatedAnswersDiv.innerHTML = ''; // Pastikan kosong
+                // Jika Anda menghapus div kolom jawaban dari HTML, baris di bawah ini tidak perlu
+                // generatedAnswersDiv.parentElement.classList.add('hidden'); // Sembunyikan kolomnya
+            } else {
+                // Jika Anda menghapus div kolom jawaban dari HTML, baris di bawah ini tidak perlu
+                // generatedAnswersDiv.parentElement.classList.remove('hidden'); // Tampilkan lagi kolomnya
+            }
+
+            // Simpan teks jawaban yang dikumpulkan untuk fungsi Salin Jawaban
+            generatedAnswersDiv.dataset.answerText = answerTextForCopy.join('\n');
+
         }
 
         // --- Event Listeners ---
@@ -1176,7 +1222,8 @@
             }
         });
         copyAnswersBtn.addEventListener('click', () => {
-            const textToCopy = generatedAnswersDiv.innerText;
+            // Ambil teks jawaban dari data attribute
+            const textToCopy = generatedAnswersDiv.dataset.answerText || generatedAnswersDiv.innerText; // Fallback ke innerText jika data attribute kosong
             if (textToCopy && textToCopy !== "Kunci jawaban akan muncul di sini." && textToCopy !== "Membuat kunci jawaban...") {
                 navigator.clipboard.writeText(textToCopy)
                     .then(() => showSnackbar('Kunci jawaban berhasil disalin!'))
