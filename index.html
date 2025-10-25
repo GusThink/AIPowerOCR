@@ -663,13 +663,49 @@
     <canvas id="camera-canvas" class="hidden"></canvas>
 
     <script type="module">
-
+        const body = document.body;
+        const ocrResult = document.getElementById('ocr-result');
+        const outputPlaceholder = document.getElementById('output-placeholder');
+        const copyTextBtn = document.getElementById('copy-text-btn');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const apiKeyStatus = document.getElementById('api-key-status');
+        const apiSettingsView = document.getElementById('api-settings-view');
+        const cameraModal = document.getElementById('camera-modal');
+        const videoElement = document.getElementById('camera-stream');
+        const canvasElement = document.getElementById('camera-canvas');
+        const captureBtn = document.getElementById('capture-btn');
+        const useCameraBtn = document.getElementById('use-camera-btn');
+        const closeCameraBtn = document.getElementById('close-camera-btn');
+        const menuBtn = document.getElementById('menu-btn');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+        const menuDeviceToggle = document.getElementById('menu-device-toggle');
+        const menuThemeToggle = document.getElementById('menu-theme-toggle');
+        const menuApiSettings = document.getElementById('menu-api-settings');
+        const imageInputArea = document.getElementById('image-input-area');
+        const cropperStage = document.getElementById('cropper-stage');
+        const imageToCrop = document.getElementById('image-to-crop');
+        const extractBtn = document.getElementById('extract-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const scanOverlay = document.getElementById('scan-overlay');
+        const tidyTextBtn = document.getElementById('tidy-text-btn');
+        const revertBtn = document.getElementById('revert-btn');
+        const formatBtn = document.getElementById('format-btn');
+        const addToMaterialBtn = document.getElementById('add-to-material-btn');
+        const materialTextarea = document.getElementById('material-textarea');
+        const clearMaterialBtn = document.getElementById('clear-material-btn');
+        const educationLevelSelect = document.getElementById('education-level');
+        const questionTypeSelect = document.getElementById('question-type');
+        const numQuestionsInput = document.getElementById('num-questions');
+        const generateQuestionsBtn = document.getElementById('generate-questions-btn');
+        const generatedQuestionsDiv = document.getElementById('generated-questions');
+        const generatedAnswersDiv = document.getElementById('generated-answers');
+        const copyQuestionsBtn = document.getElementById('copy-questions-btn');
+        const copyAnswersBtn = document.getElementById('copy-answers-btn');
         let originalOcrText = '';
         let cropper = null;
         let currentStream = null;
+
         let snackbarTimeout;
-        let currentDeviceIndex = 0;
-        const deviceStates = ['mobile-view', 'tablet-view', 'pc-view'];
         function showSnackbar(message) {
             const snackbar = document.getElementById('snackbar');
             clearTimeout(snackbarTimeout);
@@ -689,7 +725,8 @@
             const newTheme = body.classList.contains('light-theme') ? 'dark' : 'light';
             localStorage.setItem('theme', newTheme); applyTheme(newTheme); applyClickFeedback(menuThemeToggle);
         });
-
+        let currentDeviceIndex = 0;
+        const deviceStates = ['mobile-view', 'tablet-view', 'pc-view'];
         function applyDeviceView(index) {
             document.getElementById('device-preview-container').className = `mx-auto main-card border-custom flex flex-col ${deviceStates[index]}`;
             currentDeviceIndex = index;
@@ -1272,7 +1309,6 @@ Pastikan struktur JSON persis seperti contoh di atas sesuai jenis soal yang dimi
                 showSnackbar('Tidak ada kunci jawaban untuk disalin.');
             }
         });
-
     </script>
 </body>
 
